@@ -2,13 +2,10 @@
 const cors = require('cors');
 const createError = require('http-errors');
 const express = require('express');
-const path = require('path');
 const port = normalizePort(process.env.PORT || '3000');
 const User = require(__dirname+'/models/Users');
-const config = {
-  autoIndex: false,
-  useNewUrlParser: true,
-};
+const val = require('./val');
+
 //const favicon = require('serve-favicon');
 //const logger = require('morgan');
 
@@ -16,10 +13,10 @@ const config = {
 //const dashRouter = require('./routes/Dashboard');
 
 const mongoose = require('mongoose');
-const mongodbHost = 'ds163650.mlab.com';
-const mongodbPort = '63650';
-const authenticate = 'ApiAccess:mazel098@'; //admin 'yona321:mazel1419@'
-const mongodbDatabase = 'compudime';
+const mongodbHost = val.mongodbHost;
+const mongodbPort = val.port;
+const authenticate = val.authenticate
+const mongodbDatabase = val.mongodbDatabase;
 
 // connect string for mongodb server running locally, connecting to a database called test
 const url = 'mongodb://'+authenticate+mongodbHost+':'+mongodbPort + '/' + mongodbDatabase;
