@@ -22,12 +22,12 @@ export class DashComponent {
   private colorsArr: string[];
 
   public arrCards = [
-    { title: 'Card 1', cols: 1, rows: 1 , CardContent: 'content1' },
-    { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content2' },
-    { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content3' },
-    { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content4' }
+    { title: 'DB_Ver', cols: 1, rows: 1 , CardContent: 'content 1' },
+    { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2' },
+    { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3' },
+    { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' }
   ];
-  public htmlToAdd: string;
+
   /** Based on the screen size, switch from standard to one column per row */
   cards = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map(({ matches }) => {
@@ -36,11 +36,19 @@ export class DashComponent {
       }
       this.arrCards[0].cols = 2;
       this.arrCards[2].rows = 2;
-      this.arrCards[0].CardContent = '<canvas id="canv"></canvas>'; //`${this.arrCards[0].title}`
       return this.arrCards;
     })
   );
 
+  onAdd() {
+    const num: number = this.arrCards.length + 1;
+    this.arrCards.push({ title: 'Card ' + num, cols: 1, rows: 1 , CardContent: 'content ' + num});
+  }
+
+  onRemove(Card) {
+    const index = this.arrCards.indexOf(Card);
+    this.arrCards.splice(index, 1);
+  }
   constructor(private breakpointObserver: BreakpointObserver) {
     this.isContentEmpty = true;
     this.colorsArr = [

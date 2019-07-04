@@ -115,14 +115,14 @@ export class ChartDbVerComponent implements OnInit {
             }
           }
           //checking for vertion number after the first '.'
-          if(verI!=0){
-            if((Number(verArr[verI])*Math.pow(10,userVer[verI].length-verArr[verI].length))>Number(userVer[verI])){
+          if (verI!= 0) {
+            if ((Number(verArr[verI]) * Math.pow(10, userVer[verI].length - verArr[verI].length)) > Number(userVer[verI])){
               flage = true;
               break;
             }
           }
         }
-        if(flage){
+        if (flage) {
           flage = !flage;
           this.arr['other'] += 1;
           continue;
@@ -161,7 +161,7 @@ export class ChartDbVerComponent implements OnInit {
     Chart.defaults.global.defaultFontFamily = 'Lato';
     Chart.defaults.global.defaultFontSize = 15;
     Chart.defaults.global.defaultFontColor = '#777';
-    return new Chart(this._canv,{
+    return new Chart(this._canv, {
       type: 'doughnut',
       data: {
         labels: ['offline'],
@@ -187,7 +187,7 @@ export class ChartDbVerComponent implements OnInit {
     });
   }
 
-  buildChart(){
+  buildChart() {
     let arrLables = [];
     let arrData = [];
     let obj = {};
@@ -222,7 +222,7 @@ export class ChartDbVerComponent implements OnInit {
     this.onData();
   }
 
-  onEnter(){
+  onEnter() {
     console.log(this.ver);
     this.onData();
   }
