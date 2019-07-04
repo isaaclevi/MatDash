@@ -1,17 +1,14 @@
-import { Component, Directive, ElementRef, Renderer } from '@angular/core';
-import { map } from 'rxjs/operators';
-import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
+import { Component, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
 import { User } from '../userClass';
 
 @Component({
-  selector: 'app-dash',
-  templateUrl: './dash.component.html',
-  styleUrls: ['./dash.component.css']
+  selector: 'app-chart-db-ver',
+  templateUrl: './chart-db-ver.component.html',
+  styleUrls: ['./chart-db-ver.component.css']
 })
-export class DashComponent {
-  public isContentEmpty: boolean;
+export class ChartDbVerComponent implements OnInit {
   public ver;
   public list;
   public tableAtt;
@@ -21,28 +18,8 @@ export class DashComponent {
   private arr: object[];
   private colorsArr: string[];
 
-  public arrCards = [
-    { title: 'Card 1', cols: 1, rows: 1 , CardContent: 'content1' },
-    { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content2' },
-    { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content3' },
-    { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content4' }
-  ];
-  public htmlToAdd: string;
-  /** Based on the screen size, switch from standard to one column per row */
-  cards = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
-    map(({ matches }) => {
-      if (matches) {
-        return this.arrCards;
-      }
-      this.arrCards[0].cols = 2;
-      this.arrCards[2].rows = 2;
-      this.arrCards[0].CardContent = '<canvas id="canv"></canvas>'; //`${this.arrCards[0].title}`
-      return this.arrCards;
-    })
-  );
-
-  constructor(private breakpointObserver: BreakpointObserver) {
-    this.isContentEmpty = true;
+  constructor(private api: HttpService) {
+    this.ver = 0;
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -100,17 +77,91 @@ export class DashComponent {
   }
 
   ngOnInit() {
-    this._canv = (document.getElementById('canv') as HTMLCanvasElement).getContext('2d');
+    this._canv = (document.getElementById('DB_Ver') as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
+    this.api.getUsers().subscribe(async (val) => {
+      this._users = val;
+      if (val != null) {
+        this.onData();
+        //console.log(document.getElementById('till').parentElement.style.height);
+        //this._chart.canvas.parentNode.style.width = '600px';
+      }
+    });
   }
 
 
+  async onData(){
+    console.log(this._users);
+    this.arr = [{no_ver: 0}];
+    const verArr = this.ver.toString().split('.');
+    let flage = false;
+    let userVer = null;
+    let key;
+    let obj = {};
+    if (this.ver != 0) {
+      this.arr.push({other: 0});
+    }
+    for (let i= 0; i < this._users.length; i++) {
+      if(this._users[i].db_ver != null){ 
+        //checking version number with user version number
+        userVer = this._users[i].db_ver.split('.');
+        //console.log(userVer);
+        for (let verI = 0; verI < verArr.length; verI++) {
+          //console.log(verArr,userVer);
+          if (verI == 0) {
+            if (Number(verArr[verI]) > Number(userVer[verI])){
+              flage = true;
+              break;
+            }
+          }
+          //checking for vertion number after the first '.'
+          if(verI!=0){
+            if((Number(verArr[verI])*Math.pow(10,userVer[verI].length-verArr[verI].length))>Number(userVer[verI])){
+              flage = true;
+              break;
+            }
+          }
+        }
+        if(flage){
+          flage = !flage;
+          this.arr['other'] += 1;
+          continue;
+        }
+      }
+      let verNum = 0;
+      for (let j = 0; j < this.arr.length; j++) {
+        key = Object.keys(this.arr[j])[0];
+        if(this._users[i].db_ver == key && this._users[i].db_ver != null){
+          this.arr[j][key]++;
+        }
+        else{
+          if((this._users[i].enterprise_name != '' || this._users[i].public_ip!= undefined) && this._users[i].db_ver == null){
+            this.arr[0]['no_ver']++;
+            //console.log(this._users[i].enterprise_name);
+            break;
+          }
+          else {verNum++;}
+        }
+      }
 
-  initChart() {
+      if(verNum == this.arr.length && this._users[i].db_ver!=null)
+      {
+        obj = {};
+        obj[this._users[i].db_ver]=1;
+        this.arr.push(obj);
+      }
+    }
+    console.log(this.arr);
+    return this.buildChart();
+  }
+
+  initChart(){
+    //this.chart.canvas.parentNode.style.height = '100px';
+    //this.chart.canvas.parentNode.style.height = '100px';
     Chart.defaults.global.defaultFontFamily = 'Lato';
     Chart.defaults.global.defaultFontSize = 15;
     Chart.defaults.global.defaultFontColor = '#777';
-    return new Chart(this._canv, {
+    return new Chart(this._canv,{
       type: 'doughnut',
       data: {
         labels: ['offline'],
@@ -136,4 +187,43 @@ export class DashComponent {
     });
   }
 
+  buildChart(){
+    let arrLables = [];
+    let arrData = [];
+    let obj = {};
+    let result;
+    for(var i=0;i<this.arr.length;i++){
+      arrLables[i]=Object.keys(this.arr[i])[0];
+      arrData[i]=this.arr[i][arrLables[i]];
+      obj[arrLables[i]] = this.arr[i][arrLables[i]];
+    }
+    arrLables = arrLables.sort();
+    function sortArr(sortingArr:string[],objToSort:Object){
+      let arr = [];
+      for(let i=0;i<sortingArr.length;i++){      
+        arr.push(objToSort[sortingArr[i]]);
+      }
+      return arr;
+    }
+    //console.log(arrLables);
+    //console.log(sortArr(arrLables,obj));
+    result = sortArr(arrLables,obj);
+    this._chart.data.labels = arrLables;
+    this._chart.data.datasets[0].data = result;
+    this._chart.update();
+    ////////////////////////////////////////////////////
+    //this.chart.canvas.parentNode.style.height = '100px';
+    //this.chart.canvas.parentNode.style.height = '100px';
+    ////////////////////////////////////////////////////
+  }
+
+  onClick(){
+    console.log(this.ver);
+    this.onData();
+  }
+
+  onEnter(){
+    console.log(this.ver);
+    this.onData();
+  }
 }

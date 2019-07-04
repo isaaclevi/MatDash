@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators';
   styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent {
-
+  title = 'Dashboard Console';
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
     .pipe(
       map(result => result.matches)

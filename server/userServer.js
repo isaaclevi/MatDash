@@ -1,22 +1,17 @@
 //const Joi = require('joi');
+require('dotenv').config();
 const cors = require('cors');
 const createError = require('http-errors');
 const express = require('express');
 const port = normalizePort(process.env.PORT || '3000');
 const User = require(__dirname+'/models/Users');
-const val = require('./val');
 
-//const favicon = require('serve-favicon');
-//const logger = require('morgan');
-
-//const apiRouter = require('./server/routes/Users.js');
-//const dashRouter = require('./routes/Dashboard');
-
+//console.log(process.env.DB_HOST.toString(),process.env.DB_PORT.toString(),process.env.DB_AUTHENTICATE.toString(),process.env.DB_NAME.toString());
 const mongoose = require('mongoose');
-const mongodbHost = val.mongodbHost;
-const mongodbPort = val.port;
-const authenticate = val.authenticate
-const mongodbDatabase = val.mongodbDatabase;
+const mongodbHost = 'ds163650.mlab.com';//process.env.DB_HOST;
+const mongodbPort = '63650';//process.env.DB_PORT;
+const authenticate = 'ApiAccess:mazel098@';//process.env.DB_AUTHENTICATE;
+const mongodbDatabase = 'compudime';//process.env.DB_NAME;
 
 // connect string for mongodb server running locally, connecting to a database called test
 const url = 'mongodb://'+authenticate+mongodbHost+':'+mongodbPort + '/' + mongodbDatabase;
@@ -85,8 +80,9 @@ function onListening() {
   debug('Listening on ' + bind);
 }
 
+// connection to the db
 mongoose.connect(url, { useNewUrlParser: true,promiseLibrary: require('bluebird') })
-  .then(() =>  console.log('connection successful'))
+  .then(() => {console.log('connection successful');})
   .catch((err) => console.error(err));
 
   //get all users

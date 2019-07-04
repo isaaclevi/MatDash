@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
-var UserSchema = new mongoose.Schema({
+//to get back a schema
+//mongoose.model('CompuDashMain').schema;
+var ClientSchema = new mongoose.Schema({
     enterprise_name:String,
     store_name:String,
     compudash_ver:String,
@@ -18,4 +20,4 @@ var UserSchema = new mongoose.Schema({
     action:String,
   },{ collection : 'CompuDashMain' });
 
-  module.exports = mongoose.model('User', UserSchema);
+  module.exports = mongoose.model('User', ClientSchema);

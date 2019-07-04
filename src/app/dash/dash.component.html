@@ -10,13 +10,18 @@
               <mat-icon>more_vert</mat-icon>
             </button>
             <mat-menu #menu="matMenu" xPosition="before">
+              <button mat-menu-item>Edit</button>
+                <!--[matMenuTriggerFor]="editMenu" aria-label="Toggle menu" <mat-menu #editMenu="metMenu" xPosition="before">
+                  <label mat-menu-item>Expand</label>
+                </mat-menu>-->
+              
               <button mat-menu-item>Expand</button>
               <button mat-menu-item>Remove</button>
             </mat-menu>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content class="dashboard-card-content">
-          <div>Card Content Here</div>
+          <div [innerHtml]="card.CardContent"></div>
         </mat-card-content>
       </mat-card>
     </mat-grid-tile>
