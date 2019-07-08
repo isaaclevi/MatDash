@@ -2,8 +2,10 @@ import { Component, Directive, ElementRef, Renderer } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { Chart } from 'chart.js';
+//import { ChartDataLabels } from 'chartjs-plugin-datalabels';
 import { HttpService } from './../http.service';
 import { User } from '../userClass';
+import { bindCallback } from 'rxjs';
 
 @Component({
   selector: 'app-dash',
@@ -15,6 +17,10 @@ export class DashComponent {
   public ver;
   public list;
   public tableAtt;
+  private _radius;
+  private _midX; 
+  private _midY;
+  private _canvEl;
   private _canv;
   private _chart;
   private _users: User[];
@@ -41,14 +47,25 @@ export class DashComponent {
   );
 
   onAdd() {
-    const num: number = this.arrCards.length + 1;
-    this.arrCards.push({ title: 'Card ' + num, cols: 1, rows: 1 , CardContent: 'content ' + num});
+    let num: number = 0;
+    for (let i = this.arrCards.length - 1; i >= 0; i--) {
+      if (this.arrCards[i].title.split(' ')[0] == 'Card') {
+        num = Number(this.arrCards[i].title.split(' ')[1]);
+        console.log(num);
+        break;
+      }
+    }
+    if (num === 0) {
+      num = 0;
+    }
+    this.arrCards.push({ title: 'Card ' + (num + 1), cols: 1, rows: 1 , CardContent: 'content ' + (num + 1)});
   }
-
+  //// remove card
   onRemove(Card) {
     const index = this.arrCards.indexOf(Card);
     this.arrCards.splice(index, 1);
   }
+
   constructor(private breakpointObserver: BreakpointObserver) {
     this.isContentEmpty = true;
     this.colorsArr = [
@@ -107,12 +124,16 @@ export class DashComponent {
     return this._canv;
   }
 
-  ngOnInit() {
-    this._canv = (document.getElementById('canv') as HTMLCanvasElement).getContext('2d');
+  ngAfterViewInit() {
+    this._canvEl = document.getElementById('canv');
+    this._canv = (this._canvEl as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
+    this._midX = this._canvEl.width/2;
+    this._midY = this._canvEl.height/2
+    this._radius = this._chart.outerRadius;
+    
+    //this.drawSegmentValues();
   }
-
-
 
   initChart() {
     Chart.defaults.global.defaultFontFamily = 'Lato';
@@ -120,11 +141,14 @@ export class DashComponent {
     Chart.defaults.global.defaultFontColor = '#777';
     return new Chart(this._canv, {
       type: 'doughnut',
+      //showTooltips: false,
+      //onAnimationProgress: drawSegmentValues,
+      //plugins: [ChartDataLabels],
       data: {
-        labels: ['offline'],
+        labels: ['offline','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','30','31','32','33','34','35','36','37','38','39','40','41','42'],
         datasets: [{
           label: 'empty_chart',
-          data: [0, 0],
+          data: [50, 50,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
           backgroundColor: this.colorsArr,
           borderWidth: 1,
           borderColor: '#777',
@@ -132,16 +156,47 @@ export class DashComponent {
           hoverBorderColor: '#777'
         }],
       },
-      options:{
+      options: {
+        /*plugins: {
+          datalabels: {
+            color: 'black'
+          }
+        },*/
         legend: {
           position: 'right',
-          display:false,
+          display: false,
         },
-        responsive:false,
+        responsive: false,
         maintainAspectRatio: true,
-        aspectRatio:2,
+        aspectRatio: 2,
       }
     });
   }
 
+  drawSegmentValues()
+  {
+    for(var i=0; i< this._chart.segments.length; i++) 
+    {
+        // Default properties for text (size is scaled)
+        this._canv.fillStyle = 'black';
+        var textSize = this._canv.width/10;
+        this._canv.font = textSize + 'px Verdana';
+
+        // Get needed variables
+        var value = this._chart.segments[i].value;
+        var startAngle = this._chart.segments[i].startAngle;
+        var endAngle = this._chart.segments[i].endAngle;
+        var middleAngle = startAngle + ((endAngle - startAngle)/2);
+
+        // Compute text location
+        var posX = (this._radius/2) * Math.cos(middleAngle) + this._midX;
+        var posY = (this._radius/2) * Math.sin(middleAngle) + this._midY;
+
+        // Text offside to middle of text
+        var w_offset = this._canv.measureText(value).width/2;
+        var h_offset = textSize/4;
+
+        this._canv.fillText(value, posX - w_offset, posY + h_offset);
+    }
+  }
 }

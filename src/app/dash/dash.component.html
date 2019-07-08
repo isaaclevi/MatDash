@@ -24,7 +24,8 @@
         <mat-card-content class="dashboard-card-content">
           <div [ngSwitch]="card.title">
             <div *ngSwitchCase="'DB_Ver'">
-              <app-chart-db-ver></app-chart-db-ver>
+              <!--<app-chart-db-ver></app-chart-db-ver>-->
+              <canvas id=canv></canvas>
             </div>
             <div *ngSwitchDefault>
               {{card.CardContent}}
