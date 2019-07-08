@@ -17,10 +17,11 @@ export class DashComponent {
   public ver;
   public list;
   public tableAtt;
-  private _radius;
-  private _midX; 
-  private _midY;
+  private winRatio;
   private _canvEl;
+  private _radius;
+  private _midX;
+  private _midY;
   private _canv;
   private _chart;
   private _users: User[];
@@ -40,18 +41,19 @@ export class DashComponent {
       if (matches) {
         return this.arrCards;
       }
-      this.arrCards[0].cols = 2;
+      this.arrCards[0].cols = 1;
+      this.arrCards[0].rows = 1;
       this.arrCards[2].rows = 2;
       return this.arrCards;
     })
   );
 
   onAdd() {
-    let num: number = 0;
+    let num = 0;
     for (let i = this.arrCards.length - 1; i >= 0; i--) {
       if (this.arrCards[i].title.split(' ')[0] == 'Card') {
         num = Number(this.arrCards[i].title.split(' ')[1]);
-        console.log(num);
+        //console.log(num);
         break;
       }
     }
@@ -126,12 +128,13 @@ export class DashComponent {
 
   ngAfterViewInit() {
     this._canvEl = document.getElementById('canv');
+    this.winRatio = Math.round(this._canvEl.offsetWidth / this._canvEl.offsetHeight) * 5;
+    //console.log(this.winRatio);
     this._canv = (this._canvEl as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
-    this._midX = this._canvEl.width/2;
-    this._midY = this._canvEl.height/2
+    this._midX = this._canvEl.width / 2;
+    this._midY = this._canvEl.height / 2;
     this._radius = this._chart.outerRadius;
-    
     //this.drawSegmentValues();
   }
 
@@ -145,10 +148,10 @@ export class DashComponent {
       //onAnimationProgress: drawSegmentValues,
       //plugins: [ChartDataLabels],
       data: {
-        labels: ['offline','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','30','31','32','33','34','35','36','37','38','39','40','41','42'],
+        labels: ['offline', '1', '2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','30','31','32','33','34','35','36','37','38','39','40','41','42'],
         datasets: [{
           label: 'empty_chart',
-          data: [50, 50,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          data: [50, 50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
           backgroundColor: this.colorsArr,
           borderWidth: 1,
           borderColor: '#777',
@@ -157,44 +160,46 @@ export class DashComponent {
         }],
       },
       options: {
-        /*plugins: {
-          datalabels: {
-            color: 'black'
-          }
-        },*/
         legend: {
-          position: 'right',
-          display: false,
+          position: 'left',
+          display: true,
         },
-        responsive: false,
+        responsive: true,
         maintainAspectRatio: true,
-        aspectRatio: 2,
+        aspectRatio: this.winRatio,
       }
     });
   }
 
-  drawSegmentValues()
-  {
-    for(var i=0; i< this._chart.segments.length; i++) 
-    {
+  onKeyUp(event) {
+    console.log(event);
+  }
+
+  updateRetio() {
+    this.winRatio = Math.round(this._canvEl.offsetWidth / this._canvEl.offsetHeight) * 5;
+    //this._chart.Chart.update();
+  }
+
+  drawSegmentValues() {
+    for (let i = 0; i < this._chart.segments.length; i++) {
         // Default properties for text (size is scaled)
         this._canv.fillStyle = 'black';
-        var textSize = this._canv.width/10;
+        const textSize = this._canv.width / 10;
         this._canv.font = textSize + 'px Verdana';
 
         // Get needed variables
-        var value = this._chart.segments[i].value;
-        var startAngle = this._chart.segments[i].startAngle;
-        var endAngle = this._chart.segments[i].endAngle;
-        var middleAngle = startAngle + ((endAngle - startAngle)/2);
+        const value = this._chart.segments[i].value;
+        const startAngle = this._chart.segments[i].startAngle;
+        const endAngle = this._chart.segments[i].endAngle;
+        const middleAngle = startAngle + ((endAngle - startAngle) / 2);
 
         // Compute text location
-        var posX = (this._radius/2) * Math.cos(middleAngle) + this._midX;
-        var posY = (this._radius/2) * Math.sin(middleAngle) + this._midY;
+        const posX = (this._radius / 2) * Math.cos(middleAngle) + this._midX;
+        const posY = (this._radius / 2) * Math.sin(middleAngle) + this._midY;
 
         // Text offside to middle of text
-        var w_offset = this._canv.measureText(value).width/2;
-        var h_offset = textSize/4;
+        let w_offset = this._canv.measureText(value).width / 2;
+        let h_offset = textSize / 4;
 
         this._canv.fillText(value, posX - w_offset, posY + h_offset);
     }
