@@ -1,4 +1,4 @@
-import { Component, Directive, ElementRef, Renderer } from '@angular/core';
+import { Component, Directive, ElementRef, Renderer, HostListener } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { Chart } from 'chart.js';
@@ -12,64 +12,38 @@ import { bindCallback } from 'rxjs';
   templateUrl: './dash.component.html',
   styleUrls: ['./dash.component.css']
 })
+
+@HostListener('window:resize', ['$event'])
+
+
 export class DashComponent {
   public isContentEmpty: boolean;
   public ver;
   public list;
   public tableAtt;
+  //public dash: string;
   private winRatio;
+  private _window;
   private _canvEl;
   private _radius;
   private _midX;
   private _midY;
   private _canv;
-  private _chart;
+  private _chart: Chart;
   private _users: User[];
   private arr: object[];
   private colorsArr: string[];
 
-  public arrCards = [
-    { title: 'DB_Ver', cols: 1, rows: 1 , CardContent: 'content 1' },
-    { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2' },
-    { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3' },
-    { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' }
-  ];
-
-  /** Based on the screen size, switch from standard to one column per row */
-  cards = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
-    map(({ matches }) => {
-      if (matches) {
-        return this.arrCards;
-      }
-      this.arrCards[0].cols = 1;
-      this.arrCards[0].rows = 1;
-      this.arrCards[2].rows = 2;
-      return this.arrCards;
-    })
-  );
-
-  onAdd() {
-    let num = 0;
-    for (let i = this.arrCards.length - 1; i >= 0; i--) {
-      if (this.arrCards[i].title.split(' ')[0] == 'Card') {
-        num = Number(this.arrCards[i].title.split(' ')[1]);
-        //console.log(num);
-        break;
-      }
-    }
-    if (num === 0) {
-      num = 0;
-    }
-    this.arrCards.push({ title: 'Card ' + (num + 1), cols: 1, rows: 1 , CardContent: 'content ' + (num + 1)});
-  }
-  //// remove card
-  onRemove(Card) {
-    const index = this.arrCards.indexOf(Card);
-    this.arrCards.splice(index, 1);
-  }
+  public arrCards: any[];
 
   constructor(private breakpointObserver: BreakpointObserver) {
     this.isContentEmpty = true;
+    this.arrCards = [
+      { title: 'DB_Ver', cols: 1, rows: 1 , CardContent: 'content 1' },
+      { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2' },
+      { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3' },
+      { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' }
+    ];
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -114,27 +88,59 @@ export class DashComponent {
     ];
   }
 
-  get users() {
-    return this._users;
+    /** Based on the screen size, switch from standard to one column per row */
+  cards = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map(({ matches }) => {
+      if (matches) {
+        return this.arrCards;
+      }
+      this.arrCards[0].cols = 1;
+      this.arrCards[0].rows = 1;
+      this.arrCards[2].rows = 2;
+      return this.arrCards;
+    })
+  );
+  // add a card to the dashboard
+  onAdd() {
+    let num = 0;
+    for (let i = this.arrCards.length - 1; i >= 0; i--) {
+      if (this.arrCards[i].title.split(' ')[0] == 'Card') {
+        num = Number(this.arrCards[i].title.split(' ')[1]);
+        // console.log(num);
+        break;
+      }
+    }
+    if (num === 0) {
+      num = 0;
+    }
+    this.arrCards.push({ title: 'Card ' + (num + 1), cols: 1, rows: 1 , CardContent: 'content ' + (num + 1)});
   }
-
-  get chart() {
-    return this._chart;
-  }
-
-  get canv() {
-    return this._canv;
+  //// remove card
+  onRemove(Card) {
+    const index = this.arrCards.indexOf(Card);
+    this.arrCards.splice(index, 1);
   }
 
   ngAfterViewInit() {
+    this._window = document.getElementsByClassName('dashboard-card-content');
+    // console.log(this._window[0].offsetHeight,this._window[0].offsetWidth);
     this._canvEl = document.getElementById('canv');
-    this.winRatio = Math.round(this._canvEl.offsetWidth / this._canvEl.offsetHeight) * 5;
-    //console.log(this.winRatio);
+    // console.log(this._canvEl.offsetWidth, this._canvEl.offsetHeight);
+    if (this._window[0].offsetWidth >= this._window[0].offsetHeight) {
+      this.winRatio = Math.round(this._window[0].offsetWidth / this._window[0].offsetHeight) - 1;
+    } else {
+      this.winRatio = Math.round(this._window[0].offsetHeight / this._window[0].offsetWidth);
+    }
+
+    console.log(this.winRatio);
     this._canv = (this._canvEl as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
-    this._midX = this._canvEl.width / 2;
-    this._midY = this._canvEl.height / 2;
-    this._radius = this._chart.outerRadius;
+    /////////////////////////////
+    //this._canvEl.style.height = this._window[0].offsetHeight;
+    //this._canvEl.style.width = this._window[0].offsetWidth;
+    //this._midX = this._canvEl.width / 2;
+    //this._midY = this._canvEl.height / 2;
+    //this._radius = this._chart.outerRadius;
     //this.drawSegmentValues();
   }
 
@@ -166,20 +172,31 @@ export class DashComponent {
         },
         responsive: true,
         maintainAspectRatio: true,
-        aspectRatio: this.winRatio,
+        ///////////////////////////
+        //aspectRatio: this.winRatio
       }
     });
   }
-
-  onKeyUp(event) {
+  // change chart size
+  onResize(event) {
     console.log(event);
+    this.updateRetio();
   }
 
   updateRetio() {
-    this.winRatio = Math.round(this._canvEl.offsetWidth / this._canvEl.offsetHeight) * 5;
-    //this._chart.Chart.update();
+    if (this._window[0].offsetWidth >= this._window[0].offsetHeight) {
+      this.winRatio = Math.round(this._window[0].offsetWidth / this._window[0].offsetHeight) - 1;
+    } else {
+      this.winRatio = Math.round(this._window[0].offsetHeight / this._window[0].offsetWidth) - 1;
+    }
+    console.log(this.winRatio);
+    ////////////////////////////////////////////////////////
+    //this._canvEl.style.height = this._window[0].offsetHeight;
+    //this._canvEl.style.width = this._window[0].offsetWidth;
+
   }
 
+  /*
   drawSegmentValues() {
     for (let i = 0; i < this._chart.segments.length; i++) {
         // Default properties for text (size is scaled)
@@ -203,5 +220,17 @@ export class DashComponent {
 
         this._canv.fillText(value, posX - w_offset, posY + h_offset);
     }
+  }*/
+
+  get users() {
+    return this._users;
+  }
+
+  get chart() {
+    return this._chart;
+  }
+
+  get canv() {
+    return this._canv;
   }
 }

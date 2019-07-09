@@ -89,8 +89,8 @@ export class ChartDbVerComponent implements OnInit {
     });
   }
 
-
-  async onData(){
+/////on Data from DB
+  async onData() {
     console.log(this._users);
     this.arr = [{no_ver: 0}];
     const verArr = this.ver.toString().split('.');
@@ -115,7 +115,7 @@ export class ChartDbVerComponent implements OnInit {
             }
           }
           //checking for vertion number after the first '.'
-          if (verI!= 0) {
+          if (verI != 0) {
             if ((Number(verArr[verI]) * Math.pow(10, userVer[verI].length - verArr[verI].length)) > Number(userVer[verI])){
               flage = true;
               break;
@@ -131,31 +131,30 @@ export class ChartDbVerComponent implements OnInit {
       let verNum = 0;
       for (let j = 0; j < this.arr.length; j++) {
         key = Object.keys(this.arr[j])[0];
-        if(this._users[i].db_ver == key && this._users[i].db_ver != null){
+        if (this._users[i].db_ver == key && this._users[i].db_ver != null){
           this.arr[j][key]++;
-        }
-        else{
-          if((this._users[i].enterprise_name != '' || this._users[i].public_ip!= undefined) && this._users[i].db_ver == null){
-            this.arr[0]['no_ver']++;
-            //console.log(this._users[i].enterprise_name);
-            break;
-          }
-          else {verNum++;}
-        }
+        } else {
+            if ((this._users[i].enterprise_name != '' || this._users[i].public_ip!= undefined) && this._users[i].db_ver == null){
+              this.arr[0]['no_ver']++;
+              //console.log(this._users[i].enterprise_name);
+              break;
+            } else {
+              verNum++;
+              }
+            }
       }
-
-      if(verNum == this.arr.length && this._users[i].db_ver!=null)
-      {
+      if (verNum == this.arr.length && this._users[i].db_ver != null) {
         obj = {};
-        obj[this._users[i].db_ver]=1;
+        obj[this._users[i].db_ver] = 1;
         this.arr.push(obj);
       }
     }
     console.log(this.arr);
     return this.buildChart();
   }
-
-  initChart(){
+///// on Data from DB  //end//
+///// new chart
+  initChart() {
     //this.chart.canvas.parentNode.style.height = '100px';
     //this.chart.canvas.parentNode.style.height = '100px';
     Chart.defaults.global.defaultFontFamily = 'Lato';
@@ -175,39 +174,39 @@ export class ChartDbVerComponent implements OnInit {
           hoverBorderColor: '#777'
         }],
       },
-      options:{
+      options: {
         legend: {
           position: 'right',
-          display:false,
+          display: false,
         },
-        responsive:false,
+        responsive: false,
         maintainAspectRatio: true,
-        aspectRatio:2,
+        aspectRatio: 2,
       }
     });
   }
 
   buildChart() {
     let arrLables = [];
-    let arrData = [];
-    let obj = {};
+    const arrData = [];
+    const obj = {};
     let result;
-    for(var i=0;i<this.arr.length;i++){
-      arrLables[i]=Object.keys(this.arr[i])[0];
-      arrData[i]=this.arr[i][arrLables[i]];
+    for (let i = 0; i < this.arr.length; i++) {
+      arrLables[i] = Object.keys(this.arr[i])[0];
+      arrData[i] = this.arr[i][arrLables[i]];
       obj[arrLables[i]] = this.arr[i][arrLables[i]];
     }
     arrLables = arrLables.sort();
-    function sortArr(sortingArr:string[],objToSort:Object){
-      let arr = [];
-      for(let i=0;i<sortingArr.length;i++){      
+    function sortArr(sortingArr: string[], objToSort: object) {
+      const arr = [];
+      for (let i=0; i < sortingArr.length; i++) {
         arr.push(objToSort[sortingArr[i]]);
       }
       return arr;
     }
     //console.log(arrLables);
     //console.log(sortArr(arrLables,obj));
-    result = sortArr(arrLables,obj);
+    result = sortArr(arrLables, obj);
     this._chart.data.labels = arrLables;
     this._chart.data.datasets[0].data = result;
     this._chart.update();
@@ -217,7 +216,7 @@ export class ChartDbVerComponent implements OnInit {
     ////////////////////////////////////////////////////
   }
 
-  onClick(){
+  onClick() {
     console.log(this.ver);
     this.onData();
   }
