@@ -2,9 +2,9 @@
   <h1 class="mat-h1">Dashboard
     <button (click)="onAdd()">Add</button>
   </h1>
-  <mat-grid-list cols="2" rowHeight="350px">
+  <mat-grid-list id='grid-container' cols="3">
     <mat-grid-tile *ngFor="let card of cards | async" [colspan]="card.cols" [rowspan]="card.rows">
-      <mat-card class="dashboard-card">
+      <mat-card id='db-container' class="dashboard-card">
         <mat-card-header>
           <mat-card-title>
             {{card.title}}
@@ -21,17 +21,19 @@
             </mat-menu>
           </mat-card-title>
         </mat-card-header>
-        <mat-card-content style="position: relative;" class="dashboard-card-content">
-          <div [ngSwitch]="card.title">
-            <div *ngSwitchCase="'DB_Ver'">
-              <!--<app-chart-db-ver></app-chart-db-ver>-->
-              <canvas id=canv></canvas>
+        <div flex layout="row">
+          <mat-card-content flex class="dashboard-card-content">
+            <div fxLayoutAlign="start start" [ngSwitch]="card.title">
+              <div *ngSwitchCase="'DB_Ver'">
+                <app-chart-db-ver></app-chart-db-ver>
+                <!--<canvas id=canv></canvas>-->
+              </div>
+              <div *ngSwitchDefault>
+                {{card.CardContent}}
+              </div>
             </div>
-            <div *ngSwitchDefault>
-              {{card.CardContent}}
-            </div>
-          </div>
-        </mat-card-content>
+          </mat-card-content>
+        </div>
       </mat-card>
     </mat-grid-tile>
   </mat-grid-list>

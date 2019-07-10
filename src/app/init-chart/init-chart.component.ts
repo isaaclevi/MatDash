@@ -1,26 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+// import { ChartDataLabels } from 'chartjs-plugin-datalabels';
+import { Component } from '@angular/core';
 import { Chart } from 'chart.js';
-import { HttpService } from './../http.service';
-import { User } from '../userClass';
 import 'chartjs-plugin-labels';
 
 @Component({
-  selector: 'app-chart-db-ver',
-  templateUrl: './chart-db-ver.component.html',
-  styleUrls: ['./chart-db-ver.component.css']
+  selector: 'app-init-chart',
+  templateUrl: './init-chart.component.html',
+  styleUrls: ['./init-chart.component.css']
 })
-export class ChartDbVerComponent implements OnInit {
-  public ver;
-  public list;
-  public tableAtt;
-  private _canv;
-  private _chart;
-  private _users: User[];
-  private arr: object[];
+export class InitChartComponent {
   private colorsArr: string[];
-
-  constructor(private api: HttpService) {
-    this.ver = 0;
+  private window;
+  private _canvEl;
+  private _canv;
+  private _chart: Chart;
+  private _midX;
+  private _midY;
+  private _radius;
+  private data;
+  private lable;
+  private newLable: string[] = [];
+  constructor() {
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -65,109 +65,39 @@ export class ChartDbVerComponent implements OnInit {
     ];
   }
 
-  get users() {
-    return this._users;
-  }
-
-  get chart() {
-    return this._chart;
-  }
-
-  get canv() {
-    return this._canv;
-  }
-
-  ngOnInit() {
-    this._canv = (document.getElementById('DB_Ver') as HTMLCanvasElement).getContext('2d');
+// tslint:disable-next-line: use-lifecycle-interface
+  ngAfterViewInit() {
+    this.data = [50, 50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    this.lable = ['offline', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42'];
+    for (let i = 0; i < this.lable.length; i++) {
+      this.newLable.push(this.lable[i] + ': ' + this.data[i]);
+    }
+    this.window = document.getElementById('canv-conteiner');
+    this._canvEl = document.getElementById('canv');
+    this._canv = (this._canvEl as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
-    this.api.getUsers().subscribe(async (val) => {
-      this._users = val;
-      if (val != null) {
-        this.onData();
-        //console.log(document.getElementById('till').parentElement.style.height);
-        //this._chart.canvas.parentNode.style.width = '600px';
-      }
-    });
+    console.log(this.window.style.height);
+    console.log(this.window.style.width);
+    this._midX = this._canvEl.width / 2;
+    this._midY = this._canvEl.height / 2;
+    // this.drawSegmentValues();
   }
 
-/////on Data from DB
-  async onData() {
-    console.log(this._users);
-    this.arr = [{no_ver: 0}];
-    const verArr = this.ver.toString().split('.');
-    let flage = false;
-    let userVer = null;
-    let key;
-    let obj = {};
-    if (this.ver != 0) {
-      this.arr.push({other: 0});
-    }
-    for (let i= 0; i < this._users.length; i++) {
-      if(this._users[i].db_ver != null){ 
-        //checking version number with user version number
-        userVer = this._users[i].db_ver.split('.');
-        //console.log(userVer);
-        for (let verI = 0; verI < verArr.length; verI++) {
-          //console.log(verArr,userVer);
-          if (verI == 0) {
-            if (Number(verArr[verI]) > Number(userVer[verI])){
-              flage = true;
-              break;
-            }
-          }
-          //checking for vertion number after the first '.'
-          if (verI != 0) {
-            if ((Number(verArr[verI]) * Math.pow(10, userVer[verI].length - verArr[verI].length)) > Number(userVer[verI])){
-              flage = true;
-              break;
-            }
-          }
-        }
-        if (flage) {
-          flage = !flage;
-          this.arr['other'] += 1;
-          continue;
-        }
-      }
-      let verNum = 0;
-      for (let j = 0; j < this.arr.length; j++) {
-        key = Object.keys(this.arr[j])[0];
-        if (this._users[i].db_ver == key && this._users[i].db_ver != null){
-          this.arr[j][key]++;
-        } else {
-            if ((this._users[i].enterprise_name != '' || this._users[i].public_ip!= undefined) && this._users[i].db_ver == null){
-              this.arr[0]['no_ver']++;
-              //console.log(this._users[i].enterprise_name);
-              break;
-            } else {
-              verNum++;
-              }
-            }
-      }
-      if (verNum == this.arr.length && this._users[i].db_ver != null) {
-        obj = {};
-        obj[this._users[i].db_ver] = 1;
-        this.arr.push(obj);
-      }
-    }
-    console.log(this.arr);
-    return this.buildChart();
-  }
-///// on Data from DB  //end//
-///// new chart
   initChart() {
-    //this.chart.canvas.parentNode.style.height = '100px';
-    //this.chart.canvas.parentNode.style.height = '100px';
     Chart.defaults.global.defaultFontFamily = 'Lato';
     Chart.defaults.global.defaultFontSize = 15;
     Chart.defaults.global.defaultFontColor = '#777';
-    return new Chart(this._canv, {
+    let tempChart: Chart;
+    tempChart = new Chart(this._canv, {
       type: 'doughnut',
+      // showTooltips: false,
+      // onAnimationProgress: drawSegmentValues,
+      // plugins: [ChartDataLabels],
       data: {
-        labels: ['offline'],
+        labels: this.lable,
         datasets: [{
           label: 'empty_chart',
-          data: [0, 0],
+          data: this.data,
           backgroundColor: this.colorsArr,
           borderWidth: 1,
           borderColor: '#777',
@@ -187,53 +117,22 @@ export class ChartDbVerComponent implements OnInit {
           }
         },
         legend: {
-          position: 'left',
+          position: 'bottom',
           display: true,
         },
         cutoutPercentage: 80, //Here for innerRadius. It's already exists
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: true
       }
     });
+    return tempChart;
   }
 
-  buildChart() {
-    let arrLables = [];
-    const arrData = [];
-    const obj = {};
-    let result;
-    for (let i = 0; i < this.arr.length; i++) {
-      arrLables[i] = Object.keys(this.arr[i])[0];
-      arrData[i] = this.arr[i][arrLables[i]];
-      obj[arrLables[i]] = this.arr[i][arrLables[i]];
-    }
-    arrLables = arrLables.sort();
-    function sortArr(sortingArr: string[], objToSort: object) {
-      const arr = [];
-      for (let i=0; i < sortingArr.length; i++) {
-        arr.push(objToSort[sortingArr[i]]);
-      }
-      return arr;
-    }
-    //console.log(arrLables);
-    //console.log(sortArr(arrLables,obj));
-    result = sortArr(arrLables, obj);
-    this._chart.data.labels = arrLables;
-    this._chart.data.datasets[0].data = result;
-    this._chart.update();
-    ////////////////////////////////////////////////////
-    //this.chart.canvas.parentNode.style.height = '100px';
-    //this.chart.canvas.parentNode.style.height = '100px';
-    ////////////////////////////////////////////////////
+  get chart() {
+    return this._chart;
   }
 
-  onClick() {
-    console.log(this.ver);
-    this.onData();
-  }
-
-  onEnter() {
-    console.log(this.ver);
-    this.onData();
+  get canv() {
+    return this._canv;
   }
 }

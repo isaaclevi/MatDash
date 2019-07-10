@@ -22,8 +22,9 @@ export class DashComponent {
   public list;
   public tableAtt;
   //public dash: string;
-  private winRatio;
+  // private winRatio;
   private _window;
+  private _grid;
   private _canvEl;
   private _radius;
   private _midX;
@@ -42,7 +43,9 @@ export class DashComponent {
       { title: 'DB_Ver', cols: 1, rows: 1 , CardContent: 'content 1' },
       { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2' },
       { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3' },
-      { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' }
+      { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' },
+      { title: 'Card 5', cols: 1, rows: 1 , CardContent: 'content 5' },
+      { title: 'Card 6', cols: 1, rows: 1 , CardContent: 'content 6' }
     ];
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
@@ -96,7 +99,7 @@ export class DashComponent {
       }
       this.arrCards[0].cols = 1;
       this.arrCards[0].rows = 1;
-      this.arrCards[2].rows = 2;
+      this.arrCards[2].rows = 1;
       return this.arrCards;
     })
   );
@@ -122,19 +125,20 @@ export class DashComponent {
   }
 
   ngAfterViewInit() {
-    this._window = document.getElementsByClassName('dashboard-card-content');
-    // console.log(this._window[0].offsetHeight,this._window[0].offsetWidth);
-    this._canvEl = document.getElementById('canv');
-    // console.log(this._canvEl.offsetWidth, this._canvEl.offsetHeight);
-    if (this._window[0].offsetWidth >= this._window[0].offsetHeight) {
-      this.winRatio = Math.round(this._window[0].offsetWidth / this._window[0].offsetHeight) - 1;
-    } else {
-      this.winRatio = Math.round(this._window[0].offsetHeight / this._window[0].offsetWidth);
-    }
-
-    console.log(this.winRatio);
-    this._canv = (this._canvEl as HTMLCanvasElement).getContext('2d');
-    this._chart = this.initChart();
+    //this._window = document.getElementsByClassName('dashboard-card-content');
+    //this._grid = document.getElementById('grid-container');
+    //this._grid.rowHeight = this._window[0].offsetHeight + 150;
+    //console.log(this._grid.rowHeight);
+    //console.log(this._window[0].offsetHeight,this._window[0].offsetWidth);
+    // this._canvEl = document.getElementById('canv');
+    // // console.log(this._canvEl.offsetWidth, this._canvEl.offsetHeight);
+    // this.winRatio = Math.round(this._window[0].offsetWidth / this._window[0].offsetHeight);
+    // console.log(this._window[0].offsetWidth, this._window[0].offsetHeight, this.test.offsetWidth, this.test.offsetHeight);
+    // console.log(this.winRatio);
+    // this._canvEl = document.getElementById('canv');
+    // this._canv = (this._canvEl as HTMLCanvasElement).getContext('2d');
+    // this._chart = this.initChart();
+    // this._chart.config.options.legend.labels.generateLabels
     /////////////////////////////
     //this._canvEl.style.height = this._window[0].offsetHeight;
     //this._canvEl.style.width = this._window[0].offsetWidth;
@@ -171,30 +175,17 @@ export class DashComponent {
           display: true,
         },
         responsive: true,
-        maintainAspectRatio: true,
-        ///////////////////////////
-        //aspectRatio: this.winRatio
+        maintainAspectRatio: true
       }
     });
   }
+
   // change chart size
   onResize(event) {
     console.log(event);
-    this.updateRetio();
+    //console.log(this._window[0].offsetHeight, this._window[0].offsetWidth);
   }
 
-  updateRetio() {
-    if (this._window[0].offsetWidth >= this._window[0].offsetHeight) {
-      this.winRatio = Math.round(this._window[0].offsetWidth / this._window[0].offsetHeight) - 1;
-    } else {
-      this.winRatio = Math.round(this._window[0].offsetHeight / this._window[0].offsetWidth) - 1;
-    }
-    console.log(this.winRatio);
-    ////////////////////////////////////////////////////////
-    //this._canvEl.style.height = this._window[0].offsetHeight;
-    //this._canvEl.style.width = this._window[0].offsetWidth;
-
-  }
 
   /*
   drawSegmentValues() {

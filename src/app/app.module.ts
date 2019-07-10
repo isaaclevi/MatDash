@@ -1,4 +1,5 @@
 import { ChartsModule } from 'ng2-charts';
+//import { ChartModule } from 'angular2-chartjs';
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, Injector } from '@angular/core';
@@ -21,11 +22,13 @@ import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { DashComponent } from './dash/dash.component';
 import { CanvComponent } from './canv/canv.component';
 import { ChartDbVerComponent } from './chart-db-ver/chart-db-ver.component';
+import { InitChartComponent } from './init-chart/init-chart.component';
+import { HttpClientModule } from '@angular/common/http';
 
 const appRoutes: Routes = [
   {path: '1', component: DashComponent},
-  {path: '2', component: ChartDbVerComponent}
-  /*{path: '3', component:}*/
+  {path: '2', component: InitChartComponent},
+  {path: '3', component: ChartDbVerComponent}
 ];
 
 
@@ -36,9 +39,11 @@ const appRoutes: Routes = [
     DashComponent,
     CanvComponent,
     ChartDbVerComponent,
+    InitChartComponent,
   ],
 
   imports: [
+    HttpClientModule,
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
@@ -54,6 +59,7 @@ const appRoutes: Routes = [
     MatSidenavModule,
     MatListModule,
     MatNativeDateModule,
+    // ChartModule,
     ChartsModule
   ],
   providers: [],
