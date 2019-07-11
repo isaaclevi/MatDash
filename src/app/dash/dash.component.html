@@ -11,7 +11,7 @@
       <mat-card id='db-container' class="dashboard-card">
         <mat-card-header>
           <mat-card-title>
-            <button (click)="onTitleClick()" [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
+            <button [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
               {{card.title}}
             </button>
             <mat-menu #TitleMenu="matMenu" xPosition="before">

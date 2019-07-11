@@ -47,13 +47,15 @@ export class DashComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.cardsTitles = [];
     this.grid = 2;
     this.httpApi.getUsers().subscribe(async (val) => {
-      this.user = val[0];
+      this.onTitleClick(val[0]);
     });
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+  }
 
   // add a card to the dashboard
   onAdd() {
@@ -100,13 +102,11 @@ export class DashComponent implements OnInit, AfterViewInit {
     }
   }
   // init title for cards
-  onTitleClick() {
+  onTitleClick(val) {
     let stringArr;
-    if (this.user != null && this.cardsTitles == null) {
-      stringArr = Object.keys(this.user);
-      stringArr.splice(0, 3);
-      this.cardsTitles = stringArr;
-    }
+    stringArr = Object.keys(val);
+    stringArr.splice(0, 3);
+    this.cardsTitles = stringArr;
     console.log(this.cardsTitles);
   }
   // change card title
@@ -120,9 +120,9 @@ export class DashComponent implements OnInit, AfterViewInit {
 
   // on title change connect chart
   onTitleChangeConnectChart(title) {
-    if (this.cardsTitles == null) {
-      return false;
-    }
+    // if (this.cardsTitles == null) {
+    //   return false;
+    // }
     this.cardsTitles.forEach(cardTitle => {
       if (cardTitle == title.split(' ')[0]) {
         console.log(true);
