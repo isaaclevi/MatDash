@@ -31,12 +31,12 @@
         </mat-card-header>
         <div flex layout="row">
           <mat-card-content flex class="dashboard-card-content">
-            <div fxLayoutAlign="start start" [ngSwitch]="card.title">
-              <div *ngSwitchCase="'db_ver 1'">
-                <app-chart-db-ver></app-chart-db-ver>
+            <div fxLayoutAlign="start start">
+              <div *ngIf="onTitleChangeConnectChart(card.title)">
+                <app-chart-db-ver *ngIf="task.assignee"></app-chart-db-ver>
                 <!--<canvas id=canv></canvas>-->
               </div>
-              <div *ngSwitchDefault>
+              <div *ngIf="!(onTitleChangeConnectChart(card.title))">
                 {{card.CardContent}}
               </div>
             </div>

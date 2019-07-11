@@ -80,7 +80,7 @@ export class ChartDbVerComponent implements OnInit {
   }
 
   ngOnInit() {
-    this._canv = (document.getElementById('DB_Ver') as HTMLCanvasElement).getContext('2d');
+    this._canv = (document.getElementById('canv') as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
     this.api.getUsers().subscribe(async (val) => {
       this._users = val;

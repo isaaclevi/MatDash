@@ -117,6 +117,21 @@ export class DashComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+  // on title change connect chart
+  onTitleChangeConnectChart(title) {
+    if (this.cardsTitles == null) {
+      return false;
+    }
+    this.cardsTitles.forEach(cardTitle => {
+      if (cardTitle == title.split(' ')[0]) {
+        console.log(true);
+        return true;
+      }
+    });
+    console.log(false);
+    return false;
+  }
 }
 /*
 export class User implements OnInit {
