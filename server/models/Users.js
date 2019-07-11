@@ -18,6 +18,6 @@ var ClientSchema = new mongoose.Schema({
     public_ip:String,
     CC_Engine:String,
     action:String,
-  },{ collection : 'CompuDashMain' });
+  },{ collection : 'CompuDashMain' }); // {strict: false}
 
   module.exports = mongoose.model('User', ClientSchema);

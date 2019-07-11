@@ -46,4 +46,4 @@ testem.log
 Thumbs.db
 
 # server username and password
-/server/val.js
+/server/.env

@@ -2,12 +2,23 @@
   <h1 class="mat-h1">Dashboard
     <button (click)="onAdd()">Add</button>
   </h1>
-  <mat-grid-list id='grid-container' cols="3">
+  <div>
+    <button (click)='onAddCol()' id=add>Add Col</button>
+    <button (click)='onRemoveCol()' id=remove>Remove Col</button>
+  </div>
+  <mat-grid-list id='grid-container' [cols]="grid">
     <mat-grid-tile *ngFor="let card of cards | async" [colspan]="card.cols" [rowspan]="card.rows">
       <mat-card id='db-container' class="dashboard-card">
         <mat-card-header>
           <mat-card-title>
-            {{card.title}}
+            <button [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
+              {{card.title}}
+            </button>
+            <mat-menu #TitleMenu="matMenu" xPosition="before">
+                <button mat-menu-item>Edit</button> <!--*ngFor="let card of cards"-->
+                <button mat-menu-item>Expand</button>
+                <button mat-menu-item>Remove</button>
+              </mat-menu>
             <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -16,7 +27,7 @@
                 <!--[matMenuTriggerFor]="editMenu" aria-label="Toggle menu" <mat-menu #editMenu="metMenu" xPosition="before">
                   <label mat-menu-item>Expand</label>
                 </mat-menu>-->
-              <button mat-menu-item>Expand</button>
+              <button (click)="onExpand()" mat-menu-item>Expand</button>
               <button mat-menu-item (click)="onRemove(card)">Remove</button>
             </mat-menu>
           </mat-card-title>

@@ -1,4 +1,4 @@
-export class User{
+export class User {
     private _enterprise_name: string;
     private _store_name: string;
     private _compudash_ver: string;
@@ -18,7 +18,6 @@ export class User{
     get enterprise_name() {
         return this._enterprise_name;
     }
-
     get store_name() {
         return this._store_name;
     }
