@@ -11,22 +11,19 @@
       <mat-card id='db-container' class="dashboard-card">
         <mat-card-header>
           <mat-card-title>
-            <button [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
+            <button (click)="onTitleClick()" [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
               {{card.title}}
             </button>
             <mat-menu #TitleMenu="matMenu" xPosition="before">
-                <button mat-menu-item>Edit</button> <!--*ngFor="let card of cards"-->
-                <button mat-menu-item>Expand</button>
-                <button mat-menu-item>Remove</button>
-              </mat-menu>
+                <button (click)="onTitleChange(cardTitle, card.title)" *ngFor="let cardTitle of cardsTitles" mat-menu-item>
+                  {{cardTitle}}
+                </button> <!--*ngFor="let card of cards"-->
+            </mat-menu>
             <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
               <mat-icon>more_vert</mat-icon>
             </button>
             <mat-menu #menu="matMenu" xPosition="before">
               <button mat-menu-item>Edit</button>
-                <!--[matMenuTriggerFor]="editMenu" aria-label="Toggle menu" <mat-menu #editMenu="metMenu" xPosition="before">
-                  <label mat-menu-item>Expand</label>
-                </mat-menu>-->
               <button (click)="onExpand()" mat-menu-item>Expand</button>
               <button mat-menu-item (click)="onRemove(card)">Remove</button>
             </mat-menu>
@@ -35,7 +32,7 @@
         <div flex layout="row">
           <mat-card-content flex class="dashboard-card-content">
             <div fxLayoutAlign="start start" [ngSwitch]="card.title">
-              <div *ngSwitchCase="'DB_Ver'">
+              <div *ngSwitchCase="'db_ver 1'">
                 <app-chart-db-ver></app-chart-db-ver>
                 <!--<canvas id=canv></canvas>-->
               </div>

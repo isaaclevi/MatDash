@@ -1,7 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { HttpService } from './../http.service';
+import { Component, HostListener, AfterViewInit, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
-import {  mongoose } from 'mongoose';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-dash',
@@ -11,19 +12,19 @@ import {  mongoose } from 'mongoose';
 
 @HostListener('window:resize', ['$event'])
 
-
-export class DashComponent implements OnInit {
+export class DashComponent implements OnInit, AfterViewInit {
   public cards;
   public isContentEmpty: boolean;
-  public cardTitles: string[];
+  public cardsTitles: string[];
   public grid;
   public arrCards: any[];
+  private user;
 
 
-  constructor(private breakpointObserver: BreakpointObserver) {
+  constructor(private breakpointObserver: BreakpointObserver, private httpApi: HttpService) {
     this.isContentEmpty = true;
     this.arrCards = [
-      { title: 'DB_Ver', cols: 1, rows: 1 , CardContent: 'content 1' },
+      { title: 'Card 1', cols: 1, rows: 1 , CardContent: 'content 1' },
       { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2' },
       { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3' },
       { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' },
@@ -47,8 +48,12 @@ export class DashComponent implements OnInit {
 
   ngOnInit(): void {
     this.grid = 2;
-    this.onInitCardTitle();
+    this.httpApi.getUsers().subscribe(async (val) => {
+      this.user = val[0];
+    });
   }
+
+  ngAfterViewInit(): void {}
 
   // add a card to the dashboard
   onAdd() {
@@ -70,6 +75,10 @@ export class DashComponent implements OnInit {
     const index = this.arrCards.indexOf(Card);
     this.arrCards.splice(index, 1);
   }
+  // on resize off the screen
+  onResize(event) {
+    console.log(event);
+  }
 
   onAddCol() {
     if (this.grid < 4) {
@@ -90,11 +99,34 @@ export class DashComponent implements OnInit {
       this.grid = 2;
     }
   }
-
-  onInitCardTitle() {
-    //const user = mongoose.model('User').schema;
-    //console.log(user);
-    //this.cardTitles = Object.keys(user);
-    //console.log(this.cardTitles);
+  // init title for cards
+  onTitleClick() {
+    let stringArr;
+    if (this.user != null && this.cardsTitles == null) {
+      stringArr = Object.keys(this.user);
+      stringArr.splice(0, 3);
+      this.cardsTitles = stringArr;
+    }
+    console.log(this.cardsTitles);
+  }
+  // change card title
+  onTitleChange(newCardTitle, cardTitle) {
+    this.arrCards.forEach(card => {
+      if (card.title == cardTitle) {
+        card.title = newCardTitle + ' ' + cardTitle.split(' ')[1];
+      }
+    });
   }
 }
+/*
+export class User implements OnInit {
+  ngOnInit(): void {
+    this.createClass();
+  }
+
+  createClass() {
+    for (let i = 0; i < cardTitles.length; i++) {
+
+    }
+  }
+}*/

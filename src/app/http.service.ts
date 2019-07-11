@@ -11,8 +11,8 @@ const apiUrl = 'http://localhost:3000';
 @Injectable({
   providedIn: 'root'
 })
+
 export class HttpService {
-  @Input() data = new EventEmitter();
   constructor(private http: HttpClient) { }
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {

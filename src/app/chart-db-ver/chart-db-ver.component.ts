@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
 import { User } from '../userClass';
@@ -10,17 +10,19 @@ import 'chartjs-plugin-labels';
   styleUrls: ['./chart-db-ver.component.css']
 })
 export class ChartDbVerComponent implements OnInit {
+  @Output() listOfParams;
   public ver;
   public list;
   public tableAtt;
   private _canv;
   private _chart;
-  private _users: User[];
+  private _users: any[]//User[];
   private arr: object[];
   private colorsArr: string[];
 
   constructor(private api: HttpService) {
     this.ver = 0;
+    this.listOfParams = new EventEmitter();
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -84,8 +86,6 @@ export class ChartDbVerComponent implements OnInit {
       this._users = val;
       if (val != null) {
         this.onData();
-        //console.log(document.getElementById('till').parentElement.style.height);
-        //this._chart.canvas.parentNode.style.width = '600px';
       }
     });
   }
