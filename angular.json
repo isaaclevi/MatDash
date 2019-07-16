@@ -123,6 +123,41 @@
           }
         }
       }
+    },
+    "chart": {
+      "projectType": "library",
+      "root": "projects/chart",
+      "sourceRoot": "projects/chart/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/chart/tsconfig.lib.json",
+            "project": "projects/chart/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/chart/src/test.ts",
+            "tsConfig": "projects/chart/tsconfig.spec.json",
+            "karmaConfig": "projects/chart/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/chart/tsconfig.lib.json",
+              "projects/chart/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "MaterialDash"

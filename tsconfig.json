@@ -17,6 +17,14 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "chart": [
+        "dist/chart"
+      ],
+      "chart/*": [
+        "dist/chart/*"
+      ]
+    }
   }
 }

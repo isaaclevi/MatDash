@@ -1,28 +1,29 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, Input, AfterViewInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
-import { User } from '../userClass';
 import 'chartjs-plugin-labels';
 
 @Component({
-  selector: 'app-chart-db-ver',
-  templateUrl: './chart-db-ver.component.html',
-  styleUrls: ['./chart-db-ver.component.css']
+  selector: 'app-chart',
+  templateUrl: './chart.component.html',
+  styleUrls: ['./chart.component.css']
 })
-export class ChartDbVerComponent implements OnInit {
-  @Output() listOfParams;
+export class ChartComponent implements AfterViewInit {
+  // card info
+  private _cardVal;
+  // data to retrive from user
+  public dataType: string;
   public ver;
   public list;
   public tableAtt;
   private _canv;
-  private _chart;
-  private _users: any[]//User[];
+  private _chart: Chart;
+  private _users: any[];
   private arr: object[];
   private colorsArr: string[];
 
   constructor(private api: HttpService) {
     this.ver = 0;
-    this.listOfParams = new EventEmitter();
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -79,85 +80,36 @@ export class ChartDbVerComponent implements OnInit {
     return this._canv;
   }
 
-  ngOnInit() {
-    this._canv = (document.getElementById('canv') as HTMLCanvasElement).getContext('2d');
+  @Input('cardVal')
+    set cardVal(value) {
+      this._cardVal = value;
+      console.log(this._cardVal.id);
+      // init dataType to the data the is needed to be retrived
+      this.dataType = this._cardVal.title.split(' ')[0];
+      if (this._canv != null && this._chart != null) {
+        console.log(this._cardVal.title);
+        this.onData();
+      }
+    }
+
+    get cardVal() {
+      return this._cardVal;
+    }
+
+
+  ngAfterViewInit() {
+    this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
     this._chart = this.initChart();
     this.api.getUsers().subscribe(async (val) => {
       this._users = val;
       if (val != null) {
         this.onData();
       }
+      // console.log(this.cardVal.id);
     });
   }
-
-/////on Data from DB
-  async onData() {
-    console.log(this._users);
-    this.arr = [{no_ver: 0}];
-    const verArr = this.ver.toString().split('.');
-    let flage = false;
-    let userVer = null;
-    let key;
-    let obj = {};
-    if (this.ver != 0) {
-      this.arr.push({other: 0});
-    }
-    for (let i= 0; i < this._users.length; i++) {
-      if(this._users[i].db_ver != null){ 
-        //checking version number with user version number
-        userVer = this._users[i].db_ver.split('.');
-        //console.log(userVer);
-        for (let verI = 0; verI < verArr.length; verI++) {
-          //console.log(verArr,userVer);
-          if (verI == 0) {
-            if (Number(verArr[verI]) > Number(userVer[verI])){
-              flage = true;
-              break;
-            }
-          }
-          //checking for vertion number after the first '.'
-          if (verI != 0) {
-            if ((Number(verArr[verI]) * Math.pow(10, userVer[verI].length - verArr[verI].length)) > Number(userVer[verI])){
-              flage = true;
-              break;
-            }
-          }
-        }
-        if (flage) {
-          flage = !flage;
-          this.arr['other'] += 1;
-          continue;
-        }
-      }
-      let verNum = 0;
-      for (let j = 0; j < this.arr.length; j++) {
-        key = Object.keys(this.arr[j])[0];
-        if (this._users[i].db_ver == key && this._users[i].db_ver != null){
-          this.arr[j][key]++;
-        } else {
-            if ((this._users[i].enterprise_name != '' || this._users[i].public_ip!= undefined) && this._users[i].db_ver == null){
-              this.arr[0]['no_ver']++;
-              //console.log(this._users[i].enterprise_name);
-              break;
-            } else {
-              verNum++;
-              }
-            }
-      }
-      if (verNum == this.arr.length && this._users[i].db_ver != null) {
-        obj = {};
-        obj[this._users[i].db_ver] = 1;
-        this.arr.push(obj);
-      }
-    }
-    console.log(this.arr);
-    return this.buildChart();
-  }
-///// on Data from DB  //end//
-///// new chart
+  ///// new chart
   initChart() {
-    //this.chart.canvas.parentNode.style.height = '100px';
-    //this.chart.canvas.parentNode.style.height = '100px';
     Chart.defaults.global.defaultFontFamily = 'Lato';
     Chart.defaults.global.defaultFontSize = 15;
     Chart.defaults.global.defaultFontColor = '#777';
@@ -178,7 +130,7 @@ export class ChartDbVerComponent implements OnInit {
       options: {
         plugins: {
           labels: {
-                    // render 'label', 'value', 'percentage', 'image' or custom function, default is 'percentage'
+                // render 'label', 'value', 'percentage', 'image' or custom function, default is 'percentage'
                 render: 'value',
                 fontSize: 20,
                 fontStyle: 'bold',
@@ -190,12 +142,87 @@ export class ChartDbVerComponent implements OnInit {
           position: 'left',
           display: true,
         },
-        cutoutPercentage: 80, //Here for innerRadius. It's already exists
+        cutoutPercentage: 80, // Here for innerRadius. It's already exists
         responsive: true,
         maintainAspectRatio: true,
       }
     });
   }
+  /// new chart //END//
+
+
+///// on Data from DB
+  async onData() {
+    console.log(this._users);
+    this.arr = null;
+    this.arr = [{no_ver: 0}];
+    const verArr = this.ver.toString().split('.');
+    let flage = false;
+    let userVer = null;
+    let key;
+    let obj = {};
+    if (this.ver !== 0) {
+      this.arr.push({other: 0});
+    }
+    for (let i= 0; i < this._users.length; i++) {
+      if (this._users[i][this.dataType] != null) {
+        // checking version number with user version number
+        // console.log(this._users[i][this.dataType]);
+        if (this.dataType === 'Tis01_Module' || this.dataType === 'TisWin3_Module') {
+          // console.log('break');
+          break;
+        }
+        userVer = this._users[i][this.dataType].split('.');
+        // console.log(userVer);
+        for (let verI = 0; verI < verArr.length; verI++) {
+          // console.log(verArr,userVer);
+          if (verI === 0) {
+            if (Number(verArr[verI]) > Number(userVer[verI])) {
+              flage = true;
+              break;
+            }
+          }
+          // checking for vertion number after the first '.'
+          if (verI !== 0) {
+            if ((Number(verArr[verI]) * Math.pow(10, userVer[verI].length - verArr[verI].length)) > Number(userVer[verI])) {
+              flage = true;
+              break;
+            }
+          }
+        }
+        if (flage) {
+          flage = !flage;
+          this.arr['other'] += 1;
+          continue;
+        }
+      }
+      let verNum = 0;
+      for (let j = 0; j < this.arr.length; j++) {
+        key = Object.keys(this.arr[j])[0];
+        if (this._users[i][this.dataType] === key && this._users[i][this.dataType] != null){
+          this.arr[j][key]++;
+        } else {
+            if ((this._users[i].enterprise_name !== ''
+                || this._users[i].public_ip !== undefined)
+                && this._users[i][this.dataType] == null) {
+                      this.arr[0]['no_ver']++;
+                      // console.log(this._users[i].enterprise_name);
+                      break;
+                    } else {
+                        verNum++;
+                      }
+                    }
+      }
+      if (verNum === this.arr.length && this._users[i][this.dataType] != null) {
+        obj = {};
+        obj[this._users[i][this.dataType]] = 1;
+        this.arr.push(obj);
+      }
+    }
+    console.log(this.arr);
+    this.buildChart();
+  }
+///// on Data from DB  //end//
 
   buildChart() {
     let arrLables = [];
@@ -215,16 +242,10 @@ export class ChartDbVerComponent implements OnInit {
       }
       return arr;
     }
-    //console.log(arrLables);
-    //console.log(sortArr(arrLables,obj));
     result = sortArr(arrLables, obj);
     this._chart.data.labels = arrLables;
     this._chart.data.datasets[0].data = result;
     this._chart.update();
-    ////////////////////////////////////////////////////
-    //this.chart.canvas.parentNode.style.height = '100px';
-    //this.chart.canvas.parentNode.style.height = '100px';
-    ////////////////////////////////////////////////////
   }
 
   onClick() {

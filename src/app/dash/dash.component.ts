@@ -2,7 +2,6 @@ import { HttpService } from './../http.service';
 import { Component, HostListener, AfterViewInit, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
-import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-dash',
@@ -14,22 +13,21 @@ import { Title } from '@angular/platform-browser';
 
 export class DashComponent implements OnInit, AfterViewInit {
   public cards;
-  public isContentEmpty: boolean;
+  public isContentEmpty: boolean[];
+  public isContentChanged: boolean[];
   public cardsTitles: string[];
   public grid;
   public arrCards: any[];
-  private user;
 
 
   constructor(private breakpointObserver: BreakpointObserver, private httpApi: HttpService) {
-    this.isContentEmpty = true;
     this.arrCards = [
-      { title: 'Card 1', cols: 1, rows: 1 , CardContent: 'content 1' },
-      { title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2' },
-      { title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3' },
-      { title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4' },
-      { title: 'Card 5', cols: 1, rows: 1 , CardContent: 'content 5' },
-      { title: 'Card 6', cols: 1, rows: 1 , CardContent: 'content 6' }
+      { id: '1', title: 'Card 1', cols: 1, rows: 1 , CardContent: 'content 1', isContentEmpty: true, dataType: null},
+      { id: '2', title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2', isContentEmpty: true, dataType: null},
+      { id: '3', title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3', isContentEmpty: true, dataType: null},
+      { id: '4', title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4', isContentEmpty: true, dataType: null},
+      { id: '5', title: 'Card 5', cols: 1, rows: 1 , CardContent: 'content 5', isContentEmpty: true, dataType: null},
+      { id: '6', title: 'Card 6', cols: 1, rows: 1 , CardContent: 'content 6', isContentEmpty: true, dataType: null}
     ];
 
     /** Based on the screen size, switch from standard to one column per row */
@@ -60,17 +58,13 @@ export class DashComponent implements OnInit, AfterViewInit {
   // add a card to the dashboard
   onAdd() {
     let num = 0;
-    for (let i = this.arrCards.length - 1; i >= 0; i--) {
-      if (this.arrCards[i].title.split(' ')[0] == 'Card') {
-        num = Number(this.arrCards[i].title.split(' ')[1]);
-        // console.log(num);
-        break;
-      }
+    if(this.arrCards != null && this.arrCards != []) {
+      num = Number(this.arrCards[this.arrCards.length-1].title.split(' ')[1]);
     }
     if (num === 0) {
       num = 0;
     }
-    this.arrCards.push({ title: 'Card ' + (num + 1), cols: 1, rows: 1 , CardContent: 'content ' + (num + 1)});
+    this.arrCards.push({ id: (num+1).toString(), title: 'Card ' + (num + 1), cols: 1, rows: 1 , CardContent: 'content ' + (num + 1), isContentEmpty: true, dataType: null});
   }
   //// remove card
   onRemove(Card) {
@@ -95,7 +89,7 @@ export class DashComponent implements OnInit, AfterViewInit {
   }
 
   onExpand() {
-    if (this.grid != 1) {
+    if (this.grid !== 1) {
       this.grid = 1;
     } else {
       this.grid = 2;
@@ -112,36 +106,23 @@ export class DashComponent implements OnInit, AfterViewInit {
   // change card title
   onTitleChange(newCardTitle, cardTitle) {
     this.arrCards.forEach(card => {
-      if (card.title == cardTitle) {
+      if (card.title === cardTitle) {
         card.title = newCardTitle + ' ' + cardTitle.split(' ')[1];
+        card.isContentEmpty = false;
+        console.log(card);
       }
     });
   }
 
   // on title change connect chart
   onTitleChangeConnectChart(title) {
-    // if (this.cardsTitles == null) {
-    //   return false;
-    // }
-    this.cardsTitles.forEach(cardTitle => {
-      if (cardTitle == title.split(' ')[0]) {
-        console.log(true);
-        return true;
+    for(let i = 0; i < this.cardsTitles.length; i++ ) {
+      if (this.cardsTitles[i] === title.split(' ')[0]) {
+        this.isContentEmpty[title.split(' ')[1] - 1] = false;
+        break;
       }
-    });
-    console.log(false);
-    return false;
+    }
+    console.log(this.isContentEmpty);
+    return this.isContentEmpty[title.split(' ')[1] - 1].toString();
   }
 }
-/*
-export class User implements OnInit {
-  ngOnInit(): void {
-    this.createClass();
-  }
-
-  createClass() {
-    for (let i = 0; i < cardTitles.length; i++) {
-
-    }
-  }
-}*/

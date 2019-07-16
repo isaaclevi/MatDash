@@ -29,19 +29,12 @@
             </mat-menu>
           </mat-card-title>
         </mat-card-header>
-        <div flex layout="row">
-          <mat-card-content flex class="dashboard-card-content">
-            <div fxLayoutAlign="start start">
-              <div *ngIf="onTitleChangeConnectChart(card.title)">
-                <app-chart-db-ver *ngIf="task.assignee"></app-chart-db-ver>
-                <!--<canvas id=canv></canvas>-->
-              </div>
-              <div *ngIf="!(onTitleChangeConnectChart(card.title))">
-                {{card.CardContent}}
-              </div>
-            </div>
-          </mat-card-content>
-        </div>
+        <mat-card-content class="dashboard-card-content" style="height: 95%;width: 100%">
+          <app-chart [cardVal]='card' *ngIf="!card.isContentEmpty;else default" style="height: 100%; width:100%;"></app-chart>
+          <ng-template #default>
+            {{card.CardContent}}
+          </ng-template>
+        </mat-card-content>
       </mat-card>
     </mat-grid-tile>
   </mat-grid-list>
