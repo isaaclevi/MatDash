@@ -1,3 +1,4 @@
+import { Card } from './../CardClass';
 import { Component, Input, AfterViewInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
@@ -9,21 +10,23 @@ import 'chartjs-plugin-labels';
   styleUrls: ['./chart.component.css']
 })
 export class ChartComponent implements AfterViewInit {
-  // card info
-  private _cardVal;
   // data to retrive from user
   public dataType: string;
   public ver;
   public list;
   public tableAtt;
+  // card info
+  private _cardVal;
   private _canv;
   private _chart: Chart;
   private _users: any[];
   private arr: object[];
   private colorsArr: string[];
+  private isChartChanged: boolean;
 
   constructor(private api: HttpService) {
     this.ver = 0;
+    this.isChartChanged = false;
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -80,33 +83,31 @@ export class ChartComponent implements AfterViewInit {
     return this._canv;
   }
 
-  @Input('cardVal')
+  get cardVal(): Card {
+    return this._cardVal;
+  }
+
+  @Input()
     set cardVal(value) {
+      this.isChartChanged = true;
+      // console.log(this._cardVal);
       this._cardVal = value;
-      console.log(this._cardVal.id);
-      // init dataType to the data the is needed to be retrived
-      this.dataType = this._cardVal.title.split(' ')[0];
-      if (this._canv != null && this._chart != null) {
-        console.log(this._cardVal.title);
-        this.onData();
-      }
+      // console.log(this._cardVal);
+      this.dataType = this._cardVal.cardContent;
+      this.isChartChanged = false;
     }
-
-    get cardVal() {
-      return this._cardVal;
-    }
-
 
   ngAfterViewInit() {
-    this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
-    this._chart = this.initChart();
-    this.api.getUsers().subscribe(async (val) => {
-      this._users = val;
-      if (val != null) {
-        this.onData();
-      }
-      // console.log(this.cardVal.id);
-    });
+    if (!this.isChartChanged) {
+      this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
+      this._chart = this.initChart();
+      this.api.getUsers().subscribe(async (val) => {
+        this._users = val;
+        if (val != null) {
+          this.onData();
+        }
+      });
+    }
   }
   ///// new chart
   initChart() {
@@ -153,7 +154,7 @@ export class ChartComponent implements AfterViewInit {
 
 ///// on Data from DB
   async onData() {
-    console.log(this._users);
+    // console.log(this._users);
     this.arr = null;
     this.arr = [{no_ver: 0}];
     const verArr = this.ver.toString().split('.');
@@ -219,7 +220,7 @@ export class ChartComponent implements AfterViewInit {
         this.arr.push(obj);
       }
     }
-    console.log(this.arr);
+    // console.log(this.arr);
     this.buildChart();
   }
 ///// on Data from DB  //end//

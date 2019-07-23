@@ -8,14 +8,14 @@
   </div>
   <mat-grid-list id='grid-container' [cols]="grid">
     <mat-grid-tile *ngFor="let card of cards | async" [colspan]="card.cols" [rowspan]="card.rows">
-      <mat-card id='db-container' class="dashboard-card">
+      <mat-card class="dashboard-card">
         <mat-card-header>
           <mat-card-title>
             <button [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
               {{card.title}}
             </button>
             <mat-menu #TitleMenu="matMenu" xPosition="before">
-                <button (click)="onTitleChange(cardTitle, card.title)" *ngFor="let cardTitle of cardsTitles" mat-menu-item>
+                <button (click)="onTitleChange(cardTitle, card)" *ngFor="let cardTitle of cardsTitles; trackBy: cardTitle" mat-menu-item>
                   {{cardTitle}}
                 </button> <!--*ngFor="let card of cards"-->
             </mat-menu>
@@ -30,9 +30,10 @@
           </mat-card-title>
         </mat-card-header>
         <mat-card-content class="dashboard-card-content" style="height: 95%;width: 100%">
-          <app-chart [cardVal]='card' *ngIf="!card.isContentEmpty;else default" style="height: 100%; width:100%;"></app-chart>
+          <app-chart [cardVal]="card" *ngIf="onCartChangeView(card);else default" style="height: 100%; width:100%;">
+          </app-chart>
           <ng-template #default>
-            {{card.CardContent}}
+            {{card.cardContent}}
           </ng-template>
         </mat-card-content>
       </mat-card>

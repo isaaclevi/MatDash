@@ -28,14 +28,13 @@ const appRoutes: Routes = [
   {path: '3', component: ChartComponent}
 ];
 
-
 @NgModule({
   declarations: [
     AppComponent,
     NavBarComponent,
     DashComponent,
     InitChartComponent,
-    ChartComponent,
+    ChartComponent
   ],
 
   imports: [
@@ -60,6 +59,7 @@ const appRoutes: Routes = [
   providers: [],
   bootstrap: [AppComponent],
 })
+
 export class AppModule {
   constructor(private injector: Injector) {}
 }

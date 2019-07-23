@@ -2,6 +2,8 @@ import { HttpService } from './../http.service';
 import { Component, HostListener, AfterViewInit, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
+import { Card } from '../CardClass';
+
 
 @Component({
   selector: 'app-dash',
@@ -17,17 +19,19 @@ export class DashComponent implements OnInit, AfterViewInit {
   public isContentChanged: boolean[];
   public cardsTitles: string[];
   public grid;
-  public arrCards: any[];
+  public arrCards: Card[];
+  private buttonName: string[];
+  private conter = 0;
 
 
   constructor(private breakpointObserver: BreakpointObserver, private httpApi: HttpService) {
     this.arrCards = [
-      { id: '1', title: 'Card 1', cols: 1, rows: 1 , CardContent: 'content 1', isContentEmpty: true, dataType: null},
-      { id: '2', title: 'Card 2', cols: 1, rows: 1 , CardContent: 'content 2', isContentEmpty: true, dataType: null},
-      { id: '3', title: 'Card 3', cols: 1, rows: 1 , CardContent: 'content 3', isContentEmpty: true, dataType: null},
-      { id: '4', title: 'Card 4', cols: 1, rows: 1 , CardContent: 'content 4', isContentEmpty: true, dataType: null},
-      { id: '5', title: 'Card 5', cols: 1, rows: 1 , CardContent: 'content 5', isContentEmpty: true, dataType: null},
-      { id: '6', title: 'Card 6', cols: 1, rows: 1 , CardContent: 'content 6', isContentEmpty: true, dataType: null}
+      { id: '1', title: 'Card 1', cols: 1, rows: 1 , cardContent: 'content 1', isChanged: false },
+      { id: '2', title: 'Card 2', cols: 1, rows: 1 , cardContent: 'content 2', isChanged: false },
+      { id: '3', title: 'Card 3', cols: 1, rows: 1 , cardContent: 'content 3', isChanged: false },
+      { id: '4', title: 'Card 4', cols: 1, rows: 1 , cardContent: 'content 4', isChanged: false },
+      { id: '5', title: 'Card 5', cols: 1, rows: 1 , cardContent: 'content 5', isChanged: false },
+      { id: '6', title: 'Card 6', cols: 1, rows: 1 , cardContent: 'content 6', isChanged: false }
     ];
 
     /** Based on the screen size, switch from standard to one column per row */
@@ -48,7 +52,7 @@ export class DashComponent implements OnInit, AfterViewInit {
     this.cardsTitles = [];
     this.grid = 2;
     this.httpApi.getUsers().subscribe(async (val) => {
-      this.onTitleClick(val[0]);
+      this.onTitleInit(val[0]);
     });
   }
 
@@ -58,17 +62,24 @@ export class DashComponent implements OnInit, AfterViewInit {
   // add a card to the dashboard
   onAdd() {
     let num = 0;
-    if(this.arrCards != null && this.arrCards != []) {
-      num = Number(this.arrCards[this.arrCards.length-1].title.split(' ')[1]);
+    if (this.arrCards != null && this.arrCards !== []) {
+      num = Number(this.arrCards[this.arrCards.length - 1].title.split(' ')[1]);
     }
     if (num === 0) {
       num = 0;
     }
-    this.arrCards.push({ id: (num+1).toString(), title: 'Card ' + (num + 1), cols: 1, rows: 1 , CardContent: 'content ' + (num + 1), isContentEmpty: true, dataType: null});
+    this.arrCards.push({
+      id: (num + 1).toString(),
+      title: 'Card ' + (num + 1),
+      cols: 1,
+      rows: 1,
+      cardContent: 'content ' + (num + 1),
+      isChanged: false
+    });
   }
   //// remove card
-  onRemove(Card) {
-    const index = this.arrCards.indexOf(Card);
+  onRemove(card) {
+    const index = this.arrCards.indexOf(card);
     this.arrCards.splice(index, 1);
   }
   // on resize off the screen
@@ -96,7 +107,7 @@ export class DashComponent implements OnInit, AfterViewInit {
     }
   }
   // init title for cards
-  onTitleClick(val) {
+  onTitleInit(val) {
     let stringArr;
     stringArr = Object.keys(val);
     stringArr.splice(0, 3);
@@ -104,25 +115,37 @@ export class DashComponent implements OnInit, AfterViewInit {
     console.log(this.cardsTitles);
   }
   // change card title
-  onTitleChange(newCardTitle, cardTitle) {
-    this.arrCards.forEach(card => {
-      if (card.title === cardTitle) {
-        card.title = newCardTitle + ' ' + cardTitle.split(' ')[1];
-        card.isContentEmpty = false;
-        console.log(card);
+  onTitleChange(newCardTitle, card) {
+    if (card.title !== newCardTitle) {
+      card.isChanged = true;
+    }
+    card.cardContent  = newCardTitle;
+    card.title = newCardTitle + ' ' + card.title.split(' ')[1];
+  }
+
+  onCartChangeView(card) {
+    // this.conter++;
+    // console.log(this.conter);
+    if (card.isChanged) {
+      card.isChanged = false;
+      return false;
+    } else {
+      if (card.title.split(' ')[0] === 'Card') {
+        return false;
       }
-    });
+    }
+    return true;
   }
 
   // on title change connect chart
   onTitleChangeConnectChart(title) {
-    for(let i = 0; i < this.cardsTitles.length; i++ ) {
+    for (let i = 0; i < this.cardsTitles.length; i++) {
       if (this.cardsTitles[i] === title.split(' ')[0]) {
         this.isContentEmpty[title.split(' ')[1] - 1] = false;
         break;
       }
     }
     console.log(this.isContentEmpty);
-    return this.isContentEmpty[title.split(' ')[1] - 1].toString();
+    return this.isContentEmpty[title.split(' ')[1] - 1];
   }
 }
