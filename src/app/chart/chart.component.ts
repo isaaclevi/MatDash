@@ -1,5 +1,5 @@
 import { Card } from './../CardClass';
-import { Component, Input, AfterViewInit } from '@angular/core';
+import { Component, Input, AfterViewInit, EventEmitter, Output } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
 import 'chartjs-plugin-labels';
@@ -23,10 +23,12 @@ export class ChartComponent implements AfterViewInit {
   private arr: object[];
   private colorsArr: string[];
   private isChartChanged: boolean;
+  @Output() viewChanged;
 
   constructor(private api: HttpService) {
     this.ver = 0;
     this.isChartChanged = false;
+    this.viewChanged = new EventEmitter();
     this.colorsArr = [
       '#63b598', '#ce7d78', '#ea9e70', '#a48a9e', '#c6e1e8', '#648177', '#0d5ac1',
       '#f205e6', '#1c0365', '#14a9ad', '#4ca2f9', '#a4e43f', '#d298e2', '#6119d0',
@@ -90,17 +92,31 @@ export class ChartComponent implements AfterViewInit {
   @Input()
     set cardVal(value) {
       this.isChartChanged = true;
-      // console.log(this._cardVal);
       this._cardVal = value;
-      // console.log(this._cardVal);
       this.dataType = this._cardVal.cardContent;
       this.isChartChanged = false;
+  }
+
+  // if titlte changed
+  onCartChangeView(card) {
+    // this.conter++;
+    // console.log(this.conter);
+    if (card.isChanged) {
+      card.isChanged = false;
+      return true;
+    } else {
+      if (card.title.split(' ')[0] === 'Card') {
+        return false;
+      }
     }
+    return false;
+  }
+
 
   ngAfterViewInit() {
+    this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
+    this._chart = this.initChart();
     if (!this.isChartChanged) {
-      this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
-      this._chart = this.initChart();
       this.api.getUsers().subscribe(async (val) => {
         this._users = val;
         if (val != null) {
@@ -108,6 +124,7 @@ export class ChartComponent implements AfterViewInit {
         }
       });
     }
+    this.viewChanged.emit(this._cardVal);
   }
   ///// new chart
   initChart() {

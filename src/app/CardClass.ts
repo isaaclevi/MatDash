@@ -5,6 +5,7 @@ export class Card {
     rows: number;
     cardContent: string;
     isChanged: boolean;
+    cardInView: boolean;
 
     constructor(card: Card) {
         this.id = card.id;
@@ -13,5 +14,6 @@ export class Card {
         this.rows = card.rows;
         this.cardContent = card.cardContent;
         this.isChanged = card.isChanged;
+        this.cardInView = card.cardInView;
     }
 }

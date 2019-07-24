@@ -20,18 +20,16 @@ export class DashComponent implements OnInit, AfterViewInit {
   public cardsTitles: string[];
   public grid;
   public arrCards: Card[];
-  private buttonName: string[];
-  private conter = 0;
 
 
   constructor(private breakpointObserver: BreakpointObserver, private httpApi: HttpService) {
     this.arrCards = [
-      { id: '1', title: 'Card 1', cols: 1, rows: 1 , cardContent: 'content 1', isChanged: false },
-      { id: '2', title: 'Card 2', cols: 1, rows: 1 , cardContent: 'content 2', isChanged: false },
-      { id: '3', title: 'Card 3', cols: 1, rows: 1 , cardContent: 'content 3', isChanged: false },
-      { id: '4', title: 'Card 4', cols: 1, rows: 1 , cardContent: 'content 4', isChanged: false },
-      { id: '5', title: 'Card 5', cols: 1, rows: 1 , cardContent: 'content 5', isChanged: false },
-      { id: '6', title: 'Card 6', cols: 1, rows: 1 , cardContent: 'content 6', isChanged: false }
+      { id: '1', title: 'Card 1', cols: 1, rows: 1 , cardContent: 'content 1', isChanged: false, cardInView: false },
+      { id: '2', title: 'Card 2', cols: 1, rows: 1 , cardContent: 'content 2', isChanged: false, cardInView: false },
+      { id: '3', title: 'Card 3', cols: 1, rows: 1 , cardContent: 'content 3', isChanged: false, cardInView: false },
+      { id: '4', title: 'Card 4', cols: 1, rows: 1 , cardContent: 'content 4', isChanged: false, cardInView: false },
+      { id: '5', title: 'Card 5', cols: 1, rows: 1 , cardContent: 'content 5', isChanged: false, cardInView: false },
+      { id: '6', title: 'Card 6', cols: 1, rows: 1 , cardContent: 'content 6', isChanged: false, cardInView: false }
     ];
 
     /** Based on the screen size, switch from standard to one column per row */
@@ -74,7 +72,8 @@ export class DashComponent implements OnInit, AfterViewInit {
       cols: 1,
       rows: 1,
       cardContent: 'content ' + (num + 1),
-      isChanged: false
+      isChanged: false,
+      cardInView: false
     });
   }
   //// remove card
@@ -116,36 +115,22 @@ export class DashComponent implements OnInit, AfterViewInit {
   }
   // change card title
   onTitleChange(newCardTitle, card) {
-    if (card.title !== newCardTitle) {
+    if (card.title.split(' ')[0] !== newCardTitle) {
       card.isChanged = true;
+      card.isInView = false;
     }
     card.cardContent  = newCardTitle;
     card.title = newCardTitle + ' ' + card.title.split(' ')[1];
   }
-
-  onCartChangeView(card) {
-    // this.conter++;
-    // console.log(this.conter);
-    if (card.isChanged) {
-      card.isChanged = false;
-      return false;
-    } else {
-      if (card.title.split(' ')[0] === 'Card') {
-        return false;
-      }
+  // view was init
+  onView(event: Card) {
+    if (event.isChanged) {
+      event.cardInView = true;
     }
-    return true;
   }
 
-  // on title change connect chart
-  onTitleChangeConnectChart(title) {
-    for (let i = 0; i < this.cardsTitles.length; i++) {
-      if (this.cardsTitles[i] === title.split(' ')[0]) {
-        this.isContentEmpty[title.split(' ')[1] - 1] = false;
-        break;
-      }
-    }
-    console.log(this.isContentEmpty);
-    return this.isContentEmpty[title.split(' ')[1] - 1];
+  // remove view from dash
+  changView(card: Card) {
+    card.isChanged = false;
   }
 }

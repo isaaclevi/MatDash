@@ -11,29 +11,29 @@
       <mat-card class="dashboard-card">
         <mat-card-header>
           <mat-card-title>
-            <button [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
-              {{card.title}}
-            </button>
-            <mat-menu #TitleMenu="matMenu" xPosition="before">
-                <button (click)="onTitleChange(cardTitle, card)" *ngFor="let cardTitle of cardsTitles; trackBy: cardTitle" mat-menu-item>
-                  {{cardTitle}}
-                </button> <!--*ngFor="let card of cards"-->
-            </mat-menu>
-            <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #menu="matMenu" xPosition="before">
-              <button mat-menu-item>Edit</button>
-              <button (click)="onExpand()" mat-menu-item>Expand</button>
-              <button mat-menu-item (click)="onRemove(card)">Remove</button>
-            </mat-menu>
+              <button (click)="changView(card)" [matMenuTriggerFor]="TitleMenu" aria-label="Toggle TitleMenu">
+                {{card.title}}
+              </button>
+              <mat-menu #TitleMenu="matMenu" xPosition="before">
+                  <button (click)="onTitleChange(cardTitle, card)" *ngFor="let cardTitle of cardsTitles" mat-menu-item>
+                    {{cardTitle}}
+                  </button> <!--*ngFor="let card of cards"-->
+              </mat-menu>
+              <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu" xPosition="before">
+                <button mat-menu-item>Edit</button>
+                <button (click)="onExpand()" mat-menu-item>Expand</button>
+                <button mat-menu-item (click)="onRemove(card)">Remove</button>
+              </mat-menu>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content class="dashboard-card-content" style="height: 95%;width: 100%">
-          <app-chart [cardVal]="card" *ngIf="onCartChangeView(card);else default" style="height: 100%; width:100%;">
+          <app-chart [cardVal]="card" *ngIf="card.isInView || card.isChanged; else default" (viewChanged)="onView($event)" style="height: 100%; width:100%;">
           </app-chart>
           <ng-template #default>
-            {{card.cardContent}}
+              {{card.cardContent}}
           </ng-template>
         </mat-card-content>
       </mat-card>
