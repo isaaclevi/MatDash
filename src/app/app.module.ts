@@ -21,6 +21,7 @@ import { DashComponent } from './dash/dash.component';
 import { InitChartComponent } from './init-chart/init-chart.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ChartComponent } from './chart/chart.component';
+import { FormsModule } from '@angular/forms';
 
 const appRoutes: Routes = [
   {path: '1', component: DashComponent},
@@ -40,6 +41,7 @@ const appRoutes: Routes = [
   imports: [
     HttpClientModule,
     BrowserModule,
+    FormsModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     RouterModule.forRoot(appRoutes),

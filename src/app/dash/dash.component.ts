@@ -20,6 +20,7 @@ export class DashComponent implements OnInit, AfterViewInit {
   public cardsTitles: string[];
   public grid;
   public arrCards: Card[];
+  private _users: any[];
 
 
   constructor(private breakpointObserver: BreakpointObserver, private httpApi: HttpService) {
@@ -51,9 +52,13 @@ export class DashComponent implements OnInit, AfterViewInit {
     this.grid = 2;
     this.httpApi.getUsers().subscribe(async (val) => {
       this.onTitleInit(val[0]);
+      this._users = val;
     });
   }
 
+  get users() {
+    return this._users;
+  }
   ngAfterViewInit(): void {
   }
 

@@ -1,5 +1,6 @@
+import { element } from 'protractor';
 import { Card } from './../CardClass';
-import { Component, Input, AfterViewInit, EventEmitter, Output } from '@angular/core';
+import { Component, Input, AfterViewInit, EventEmitter, Output, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
 import 'chartjs-plugin-labels';
@@ -9,24 +10,28 @@ import 'chartjs-plugin-labels';
   templateUrl: './chart.component.html',
   styleUrls: ['./chart.component.css']
 })
-export class ChartComponent implements AfterViewInit {
+export class ChartComponent implements OnInit, AfterViewInit {
   // data to retrive from user
   public dataType: string;
-  public ver;
+  public biggestVer: string;
+  public inputBig: string;
+  public inputSmall: string;
   public list;
   public tableAtt;
   // card info
   private _cardVal;
+  // all db users
+  private _users: any[];
   private _canv;
   private _chart: Chart;
-  private _users: any[];
-  private arr: object[];
+  private chartDataInit: {dataArr: any[], lablesArr: string[]};
+  private arr: {lable: string, data: number}[];
   private colorsArr: string[];
   private isChartChanged: boolean;
   @Output() viewChanged;
 
   constructor(private api: HttpService) {
-    this.ver = 0;
+    this.inputBig = '0';
     this.isChartChanged = false;
     this.viewChanged = new EventEmitter();
     this.colorsArr = [
@@ -73,8 +78,31 @@ export class ChartComponent implements AfterViewInit {
     ];
   }
 
-  get users() {
+  ngOnInit() {
+    this.onData();
+    this.chartDataInit = this.buildAndSortData();
+    this.biggestVer = this.chartDataInit.lablesArr[this.chartDataInit.lablesArr.length - 2];
+    this.inputSmall = this.biggestVer;
+  }
+
+  ngAfterViewInit() {
+    this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
+    this._chart = this.initChart();
+    if (!this.isChartChanged) {
+      this._chart.data.labels = this.chartDataInit.lablesArr;
+      this._chart.data.datasets[0].data = this.chartDataInit.dataArr;
+      this._chart.update();
+    }
+    this.viewChanged.emit(this._cardVal);
+  }
+
+  get arrUsers() {
     return this._users;
+  }
+
+  @Input()
+  set arrUsers(value: any[]) {
+    this._users = value;
   }
 
   get chart() {
@@ -97,35 +125,6 @@ export class ChartComponent implements AfterViewInit {
       this.isChartChanged = false;
   }
 
-  // if titlte changed
-  onCartChangeView(card) {
-    // this.conter++;
-    // console.log(this.conter);
-    if (card.isChanged) {
-      card.isChanged = false;
-      return true;
-    } else {
-      if (card.title.split(' ')[0] === 'Card') {
-        return false;
-      }
-    }
-    return false;
-  }
-
-
-  ngAfterViewInit() {
-    this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
-    this._chart = this.initChart();
-    if (!this.isChartChanged) {
-      this.api.getUsers().subscribe(async (val) => {
-        this._users = val;
-        if (val != null) {
-          this.onData();
-        }
-      });
-    }
-    this.viewChanged.emit(this._cardVal);
-  }
   ///// new chart
   initChart() {
     Chart.defaults.global.defaultFontFamily = 'Lato';
@@ -152,7 +151,7 @@ export class ChartComponent implements AfterViewInit {
                 render: 'value',
                 fontSize: 20,
                 fontStyle: 'bold',
-                fontColor: '#000',
+                fontColor: '#fff',
                 fontFamily: '"Lucida Console", Monaco, monospace'
           }
         },
@@ -169,110 +168,149 @@ export class ChartComponent implements AfterViewInit {
   /// new chart //END//
 
 
-///// on Data from DB
+///// on Data from DB filter data to other lable if need be
   async onData() {
-    // console.log(this._users);
-    this.arr = null;
-    this.arr = [{no_ver: 0}];
-    const verArr = this.ver.toString().split('.');
+    console.log(this._users);
+    if (this.arr != null) {
+      this.arr = null;
+    }
+    this.arr = [{lable: 'no_ver', data: 0}];
+    const verArrBig = this.inputBig.split('.');
+    let verArrSmall;
+    if (this.inputSmall != null) {
+      verArrSmall = this.inputSmall.split('.');
+    }
     let flage = false;
     let userVer = null;
-    let key;
-    let obj = {};
-    if (this.ver !== 0) {
-      this.arr.push({other: 0});
+    if (this.inputBig !== '0' || this.inputSmall !== this.biggestVer) {
+      this.arr.push({lable: 'other', data: 0});
     }
-    for (let i= 0; i < this._users.length; i++) {
+    for (let i = 0; i < this._users.length; i++) {
+      // checking the user version number is not null
       if (this._users[i][this.dataType] != null) {
-        // checking version number with user version number
-        // console.log(this._users[i][this.dataType]);
+        // chacking that the lable is not a Module
         if (this.dataType === 'Tis01_Module' || this.dataType === 'TisWin3_Module') {
           // console.log('break');
           break;
         }
         userVer = this._users[i][this.dataType].split('.');
-        // console.log(userVer);
-        for (let verI = 0; verI < verArr.length; verI++) {
-          // console.log(verArr,userVer);
-          if (verI === 0) {
-            if (Number(verArr[verI]) > Number(userVer[verI])) {
-              flage = true;
-              break;
-            }
-          }
-          // checking for vertion number after the first '.'
-          if (verI !== 0) {
-            if ((Number(verArr[verI]) * Math.pow(10, userVer[verI].length - verArr[verI].length)) > Number(userVer[verI])) {
-              flage = true;
-              break;
-            }
-          }
+        // elements that are bigger
+        flage = this.checkIfBigger(verArrBig, userVer);
+        // elements that are smaller
+        if (!flage && verArrSmall != null) {
+          flage = this.checkIfSmaller(verArrSmall, userVer);
         }
         if (flage) {
           flage = !flage;
-          this.arr['other'] += 1;
+          const res = this.arr.find((el) => {
+            return el.lable === 'other';
+          });
+          res.data++;
           continue;
         }
       }
-      let verNum = 0;
-      for (let j = 0; j < this.arr.length; j++) {
-        key = Object.keys(this.arr[j])[0];
-        if (this._users[i][this.dataType] === key && this._users[i][this.dataType] != null){
-          this.arr[j][key]++;
-        } else {
-            if ((this._users[i].enterprise_name !== ''
-                || this._users[i].public_ip !== undefined)
-                && this._users[i][this.dataType] == null) {
-                      this.arr[0]['no_ver']++;
-                      // console.log(this._users[i].enterprise_name);
-                      break;
-                    } else {
-                        verNum++;
-                      }
-                    }
+      console.log(this.arr.length);
+      this.countUsersPerVer(i);
+    }
+    console.log(this.arr);
+  }
+
+  // check if user version is begger then filter version if not put in "other" lable
+  checkIfBigger(verArrBig, userVer) {
+    for (let verI = 0; verI < verArrBig.length; verI++) {
+      if (verI === 0) {
+        if (Number(verArrBig[verI]) > Number(userVer[verI])) {
+          return true;
+        }
       }
-      if (verNum === this.arr.length && this._users[i][this.dataType] != null) {
-        obj = {};
-        obj[this._users[i][this.dataType]] = 1;
-        this.arr.push(obj);
+      // checking for vertion number after the first '.'
+      if (verI !== 0) {
+        if ((Number(verArrBig[verI])
+            * Math.pow(10, Math.abs(userVer[verI].length
+            - verArrBig[verI].length))) > Number(userVer[verI])) {
+          return true;
+        }
       }
     }
-    // console.log(this.arr);
-    this.buildChart();
+  }
+  // check if user version is Smaller then filter version if not put in "other" lable
+  checkIfSmaller(verArrSmall, userVer) {
+    for (let verI = 0; verI < verArrSmall.length; verI++) {
+      if (verI === 0) {
+        if (Number(verArrSmall[verI]) < Number(userVer[verI])) {
+          return true;
+        }
+      }
+      // checking for vertion number after the first '.'
+      if (verI !== 0) {
+        if ((Number(verArrSmall[verI])
+            * Math.pow(10, Math.abs(userVer[verI].length
+            - verArrSmall[verI].length))) < Number(userVer[verI])) {
+          return true;
+        }
+      }
+    }
+  }
+
+  // conuting how many users on each version
+  countUsersPerVer(index) {
+    const res = this.arr.find((obj) => {
+      return obj.lable === this._users[index][this.dataType];
+    });
+    if (res == null) {
+      if (this._users[index].enterprise_name !== '' && this._users[index][this.dataType] == null) {
+        this.arr[0].data++;
+      } else {
+        this.arr.push({lable: this._users[index][this.dataType], data: 1});
+      }
+    } else {
+      res.data++;
+    }
   }
 ///// on Data from DB  //end//
 
   buildChart() {
+    const res = this.buildAndSortData();
+    this._chart.data.labels = res.lablesArr;
+    this._chart.data.datasets[0].data = res.dataArr;
+    this._chart.update();
+  }
+
+  buildAndSortData() {
     let arrLables = [];
     const arrData = [];
     const obj = {};
     let result;
     for (let i = 0; i < this.arr.length; i++) {
-      arrLables[i] = Object.keys(this.arr[i])[0];
-      arrData[i] = this.arr[i][arrLables[i]];
-      obj[arrLables[i]] = this.arr[i][arrLables[i]];
+      arrLables[i] = this.arr[i].lable;
+      arrData[i] = this.arr[i].data;
+      obj[this.arr[i].lable] = this.arr[i].data;
     }
     arrLables = arrLables.sort();
-    function sortArr(sortingArr: string[], objToSort: object) {
-      const arr = [];
-      for (let i=0; i < sortingArr.length; i++) {
-        arr.push(objToSort[sortingArr[i]]);
-      }
-      return arr;
+    if (this.inputSmall !== this.biggestVer) {
+      this.inputSmall = arrLables[arrLables.length - 3];
     }
-    result = sortArr(arrLables, obj);
-    this._chart.data.labels = arrLables;
-    this._chart.data.datasets[0].data = result;
-    this._chart.update();
+    result = this.sortArr(arrLables, obj);
+    return {dataArr: result, lablesArr: arrLables};
   }
 
   onClick() {
-    console.log(this.ver);
+    console.log(this.inputBig, this.inputSmall);
     this.onData();
+    this.buildChart();
+  }
+  // sort array of data
+  sortArr(sortingArr: string[], objToSort: object) {
+    const arr = [];
+    for (let i=0; i < sortingArr.length; i++) {
+      arr.push(objToSort[sortingArr[i]]);
+    }
+    return arr;
   }
 
   onEnter() {
-    console.log(this.ver);
+    console.log(this.inputBig, this.inputSmall);
     this.onData();
+    this.buildChart();
   }
 }

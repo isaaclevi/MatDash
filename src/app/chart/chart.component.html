@@ -1,5 +1,16 @@
 <div>
-    {{cardVal.CardContent}}
     <canvas id='{{cardVal.id}}'>
     </canvas>
+    <div>
+        <button (click)='onClick()'>
+            bigger then
+        </button>
+        <input [(ngModel)]='inputBig' (keyup.enter)='onEnter()'/>
+    </div>
+    <div>
+        <button (click)='onClick()'>
+                smaller then
+        </button>
+        <input [(ngModel)]='inputSmall' (keyup.enter)='onEnter()'/>
+    </div>
 </div>
