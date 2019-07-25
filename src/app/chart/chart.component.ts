@@ -131,7 +131,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
     Chart.defaults.global.defaultFontSize = 15;
     Chart.defaults.global.defaultFontColor = '#777';
     return new Chart(this._canv, {
-      type: 'doughnut',
+      type: 'pie',
       data: {
         labels: ['offline'],
         datasets: [{
@@ -170,7 +170,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
 
 ///// on Data from DB filter data to other lable if need be
   async onData() {
-    console.log(this._users);
+    // console.log(this._users);
     if (this.arr != null) {
       this.arr = null;
     }
@@ -193,9 +193,11 @@ export class ChartComponent implements OnInit, AfterViewInit {
           // console.log('break');
           break;
         }
+        // if to do
         userVer = this._users[i][this.dataType].split('.');
         // elements that are bigger
         flage = this.checkIfBigger(verArrBig, userVer);
+        // if to do
         // elements that are smaller
         if (!flage && verArrSmall != null) {
           flage = this.checkIfSmaller(verArrSmall, userVer);
@@ -208,11 +210,12 @@ export class ChartComponent implements OnInit, AfterViewInit {
           res.data++;
           continue;
         }
+        //// end if to do
       }
-      console.log(this.arr.length);
+      // console.log(this.arr.length);
       this.countUsersPerVer(i);
     }
-    console.log(this.arr);
+    // console.log(this.arr);
   }
 
   // check if user version is begger then filter version if not put in "other" lable
@@ -225,11 +228,34 @@ export class ChartComponent implements OnInit, AfterViewInit {
       }
       // checking for vertion number after the first '.'
       if (verI !== 0) {
-        if ((Number(verArrBig[verI])
-            * Math.pow(10, Math.abs(userVer[verI].length
-            - verArrBig[verI].length))) > Number(userVer[verI])) {
+        let verArrBigStr = verArrBig[verI];
+        let userVerStr = userVer[verI];
+        if (verArrBig[verI].length > userVer[verI].length) {
+          let str = '';
+          for (let i = 0; i < verArrBig[verI].length - userVer[verI].length; i++) {
+            str += '0';
+          }
+          userVerStr += str;
+        }
+        if (verArrBig[verI].length < userVer[verI].length) {
+          let str = '';
+          for (let i = 0; i < userVer[verI].length - verArrBig[verI].length; i++ ) {
+            str += '0';
+          }
+          verArrBigStr += str;
+        }
+        if (Number(verArrBigStr) > Number(userVerStr)) {
           return true;
         }
+        if (Number(verArrBigStr) < Number(userVerStr)) {
+          return false;
+        }
+        ////////////////////////////
+        // if ((Number(verArrBig[verI])
+        //     * Math.pow(10, Math.abs(userVer[verI].length
+        //     - verArrBig[verI].length))) > Number(userVer[verI])) {
+        //   return true;
+        // }
       }
     }
   }
@@ -243,11 +269,34 @@ export class ChartComponent implements OnInit, AfterViewInit {
       }
       // checking for vertion number after the first '.'
       if (verI !== 0) {
-        if ((Number(verArrSmall[verI])
-            * Math.pow(10, Math.abs(userVer[verI].length
-            - verArrSmall[verI].length))) < Number(userVer[verI])) {
+        let verArrSmallStr = verArrSmall[verI];
+        let userVerStr = userVer[verI];
+        if (verArrSmall[verI].length > userVer[verI].length) {
+          let str = '';
+          for (let i = 0; i < verArrSmall[verI].length - userVer[verI].length; i++) {
+            str += '0';
+          }
+          userVerStr += str;
+        }
+        if (verArrSmall[verI].length < userVer[verI].length) {
+          let str = '';
+          for (let i = 0; i < userVer[verI].length - verArrSmall[verI].length; i++ ) {
+            str += '0';
+          }
+          verArrSmallStr += str;
+        }
+        if (Number(verArrSmallStr) < Number(userVerStr)) {
           return true;
         }
+        if (Number(verArrSmallStr) > Number(userVerStr)) {
+          return false;
+        }
+        //////////////////////////
+        // if ((Number(verArrSmall[verI])
+        //     * Math.pow(10, Math.abs(userVer[verI].length
+        //     - verArrSmall[verI].length))) < Number(userVer[verI])) {
+        //   return true;
+        // }
       }
     }
   }
@@ -295,7 +344,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
   }
 
   onClick() {
-    console.log(this.inputBig, this.inputSmall);
+    // console.log(this.inputBig, this.inputSmall);
     this.onData();
     this.buildChart();
   }
@@ -309,7 +358,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
   }
 
   onEnter() {
-    console.log(this.inputBig, this.inputSmall);
+    // console.log(this.inputBig, this.inputSmall);
     this.onData();
     this.buildChart();
   }
