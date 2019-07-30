@@ -13,13 +13,12 @@ import { tmpdir } from 'os';
 export class ChartComponent implements OnInit, AfterViewInit {
   // data to retrive from user
   public dataType: string;
+  // last lable value in the sorted array
   public biggestVer: string;
   // element to filter to (all smaller then filterd)
   public inputBig: string;
   // element to filter from (all bigger then filterd)
   public inputSmall: string;
-  public list;
-  public tableAtt;
   // card info
   private _cardVal;
   // all db users
@@ -103,44 +102,6 @@ export class ChartComponent implements OnInit, AfterViewInit {
       this._chart.update();
     }
     this.viewChanged.emit(this._cardVal);
-  }
-
-  get arrUsers() {
-    return this._users;
-  }
-
-  @Input()
-  set arrUsers(value: any[]) {
-    this._users = value;
-  }
-
-  get chart() {
-    return this._chart;
-  }
-
-  get canv() {
-    return this._canv;
-  }
-
-  get cardVal(): Card {
-    return this._cardVal;
-  }
-
-  @Input()
-    set cardVal(value) {
-      this.isChartChanged = true;
-      this._cardVal = value;
-      this.dataType = this._cardVal.cardContent;
-      this.isChartChanged = false;
-  }
-
-  get topList() {
-    return this._topList;
-  }
-
-  @Input()
-  set topList(val: number) {
-    this._topList = val;
   }
 
   ///// new chart
@@ -230,15 +191,14 @@ export class ChartComponent implements OnInit, AfterViewInit {
         }
         //// end if to do
       }
-      // console.log(this.arr.length);
       this.countUsersPerVer(i);
     }
     // get the top number
     if (this.topList < this.lablesNumber) {
       this.topFilter();
     }
-    // console.log(this.arr);
   }
+  ///// on Data from DB  //end//
 
   // check if user version is begger then filter version if not put in "other" lable
   checkIfBigger(verArrBig, userVer) {
@@ -338,7 +298,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
       res.data++;
     }
   }
-///// on Data from DB  //end//
+
 
   buildChart() {
     const res = this.buildAndSortData();
@@ -367,6 +327,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
 
   onFilter() {
     // console.log(this.inputBig, this.inputSmall);
+    console.log(this._topList);
     this.onData();
     this.buildChart();
   }
@@ -379,12 +340,14 @@ export class ChartComponent implements OnInit, AfterViewInit {
     return arr;
   }
 
+  // filter the top number of users
   topFilter() {
     let min: number;
     let flag = false;
     let topArr: SortArr[];
-    let otherTemp = {lable: 'other', data: 0};
+    const otherTemp = {lable: 'other', data: 0};
     topArr = [];
+    // sort an array to place the items
     for (let Index = 0; Index < this._topList; Index++) {
       topArr.push({lable: this.arr[Index].lable, data: this.arr[Index].data, index: Index});
       if (Index > 0) {
@@ -397,23 +360,11 @@ export class ChartComponent implements OnInit, AfterViewInit {
           }
         }
       }
-      /*
-      if (Index > 0 && topArr[Index].data <= topArr[Index - 1].data) {
-        let temp = topArr;
-        for (let i = Index - 1; i > -1; i--) {
-          if (topArr[Index].data >= topArr[i].data || i === 0) {
-            let temp1 = temp.splice(0, i);
-            temp1.push(topArr[Index]);
-            temp.pop();
-            topArr = null;
-            topArr = temp1.concat(temp.splice(i, Index));
-            break;
-          }
-        }
-      }*/
     }
     min = topArr[0].data;
+    // go through the all users array
     for (let i = this._topList; i < this.arr.length ; i++) {
+      // check for eatch element in the sorted array against the users array
       for (let j = topArr.length - 1; j > -1; j--) {
         if (this.arr[i].data > topArr[j].data) {
           if (this.arr[i].lable === 'other') {
@@ -421,9 +372,8 @@ export class ChartComponent implements OnInit, AfterViewInit {
           } else {
             let tempTop = topArr[j];
             topArr[j] = {lable: this.arr[i].lable, data: this.arr[i].data, index: i};
-            // to do move elements down in topArr array
-            //////////////////////////////
             if (j > 0) {
+              // sort the array again if an element is injected to the array
               for (let x = j - 1; x > -1; x--) {
                 if (tempTop.data > topArr[x].data) {
                   const tmp2 = topArr[x];
@@ -448,6 +398,49 @@ export class ChartComponent implements OnInit, AfterViewInit {
     console.log(topArr);
     this.arr = topArr;
     this.arr.push(otherTemp);
+  }
+
+  // getters and setters
+  /////////////////////////////////////////////////////
+  get arrUsers() {
+    return this._users;
+  }
+
+  @Input()
+  set arrUsers(value: any[]) {
+    this._users = value;
+  }
+
+  get chart() {
+    return this._chart;
+  }
+
+  get canv() {
+    return this._canv;
+  }
+
+  get cardVal(): Card {
+    return this._cardVal;
+  }
+
+  @Input()
+    set cardVal(value) {
+      this.isChartChanged = true;
+      this._cardVal = value;
+      this.dataType = this._cardVal.cardContent;
+      this.isChartChanged = false;
+  }
+
+  get topList() {
+    return this._topList;
+  }
+
+  set topList(val: number) {
+    if (val <= this.lablesNumber) {
+      this._topList = val;
+    } else {
+      this._topList = this.lablesNumber;
+    }
   }
 }
 
