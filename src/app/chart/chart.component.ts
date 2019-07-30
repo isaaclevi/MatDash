@@ -1,9 +1,9 @@
-import { element } from 'protractor';
 import { Card } from './../CardClass';
 import { Component, Input, AfterViewInit, EventEmitter, Output, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
 import 'chartjs-plugin-labels';
+import { tmpdir } from 'os';
 
 @Component({
   selector: 'app-chart',
@@ -14,7 +14,9 @@ export class ChartComponent implements OnInit, AfterViewInit {
   // data to retrive from user
   public dataType: string;
   public biggestVer: string;
+  // element to filter to (all smaller then filterd)
   public inputBig: string;
+  // element to filter from (all bigger then filterd)
   public inputSmall: string;
   public list;
   public tableAtt;
@@ -22,10 +24,15 @@ export class ChartComponent implements OnInit, AfterViewInit {
   private _cardVal;
   // all db users
   private _users: any[];
+  // Top number in the category
+  private _topList: number;
+  // total number of lables
+  private lablesNumber: number;
+
   private _canv;
   private _chart: Chart;
   private chartDataInit: {dataArr: any[], lablesArr: string[]};
-  private arr: {lable: string, data: number}[];
+  private arr: El[];
   private colorsArr: string[];
   private isChartChanged: boolean;
   @Output() viewChanged;
@@ -81,6 +88,8 @@ export class ChartComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.onData();
     this.chartDataInit = this.buildAndSortData();
+    this._topList = this.chartDataInit.lablesArr.length;
+    this.lablesNumber = this.chartDataInit.lablesArr.length;
     this.biggestVer = this.chartDataInit.lablesArr[this.chartDataInit.lablesArr.length - 2];
     this.inputSmall = this.biggestVer;
   }
@@ -123,6 +132,15 @@ export class ChartComponent implements OnInit, AfterViewInit {
       this._cardVal = value;
       this.dataType = this._cardVal.cardContent;
       this.isChartChanged = false;
+  }
+
+  get topList() {
+    return this._topList;
+  }
+
+  @Input()
+  set topList(val: number) {
+    this._topList = val;
   }
 
   ///// new chart
@@ -174,7 +192,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
     if (this.arr != null) {
       this.arr = null;
     }
-    this.arr = [{lable: 'no_ver', data: 0}];
+    this.arr = [{lable: 'NO_' + this.dataType, data: 0}];
     const verArrBig = this.inputBig.split('.');
     let verArrSmall;
     if (this.inputSmall != null) {
@@ -214,6 +232,10 @@ export class ChartComponent implements OnInit, AfterViewInit {
       }
       // console.log(this.arr.length);
       this.countUsersPerVer(i);
+    }
+    // get the top number
+    if (this.topList < this.lablesNumber) {
+      this.topFilter();
     }
     // console.log(this.arr);
   }
@@ -339,17 +361,17 @@ export class ChartComponent implements OnInit, AfterViewInit {
     if (this.inputSmall !== this.biggestVer) {
       this.inputSmall = arrLables[arrLables.length - 3];
     }
-    result = this.sortArr(arrLables, obj);
+    result = this.sortArrByLable(arrLables, obj);
     return {dataArr: result, lablesArr: arrLables};
   }
 
-  onClick() {
+  onFilter() {
     // console.log(this.inputBig, this.inputSmall);
     this.onData();
     this.buildChart();
   }
-  // sort array of data
-  sortArr(sortingArr: string[], objToSort: object) {
+  // sort array of data by lable
+  sortArrByLable(sortingArr: string[], objToSort: object) {
     const arr = [];
     for (let i=0; i < sortingArr.length; i++) {
       arr.push(objToSort[sortingArr[i]]);
@@ -357,9 +379,95 @@ export class ChartComponent implements OnInit, AfterViewInit {
     return arr;
   }
 
-  onEnter() {
-    // console.log(this.inputBig, this.inputSmall);
-    this.onData();
-    this.buildChart();
+  topFilter() {
+    let min: number;
+    let flag = false;
+    let topArr: SortArr[];
+    let otherTemp = {lable: 'other', data: 0};
+    topArr = [];
+    for (let Index = 0; Index < this._topList; Index++) {
+      topArr.push({lable: this.arr[Index].lable, data: this.arr[Index].data, index: Index});
+      if (Index > 0) {
+        for (let i = Index; i > 0; i--) {
+          if (topArr[i].data < topArr[i - 1].data) {
+            const temp1 = topArr[i];
+            const temp2 = topArr[i - 1];
+            topArr[i] = temp2;
+            topArr[i - 1] = temp1;
+          }
+        }
+      }
+      /*
+      if (Index > 0 && topArr[Index].data <= topArr[Index - 1].data) {
+        let temp = topArr;
+        for (let i = Index - 1; i > -1; i--) {
+          if (topArr[Index].data >= topArr[i].data || i === 0) {
+            let temp1 = temp.splice(0, i);
+            temp1.push(topArr[Index]);
+            temp.pop();
+            topArr = null;
+            topArr = temp1.concat(temp.splice(i, Index));
+            break;
+          }
+        }
+      }*/
+    }
+    min = topArr[0].data;
+    for (let i = this._topList; i < this.arr.length ; i++) {
+      for (let j = topArr.length - 1; j > -1; j--) {
+        if (this.arr[i].data > topArr[j].data) {
+          if (this.arr[i].lable === 'other') {
+            break;
+          } else {
+            let tempTop = topArr[j];
+            topArr[j] = {lable: this.arr[i].lable, data: this.arr[i].data, index: i};
+            // to do move elements down in topArr array
+            //////////////////////////////
+            if (j > 0) {
+              for (let x = j - 1; x > -1; x--) {
+                if (tempTop.data > topArr[x].data) {
+                  const tmp2 = topArr[x];
+                  topArr[x] = tempTop;
+                  tempTop = tmp2;
+                }
+              }
+            }
+            flag = true;
+            otherTemp.data += tempTop.data;
+            min = topArr[0].data;
+            break;
+          }
+        }
+      }
+      if (!flag) {
+        otherTemp.data += this.arr[i].data;
+      } else {
+        flag = false;
+      }
+    }
+    console.log(topArr);
+    this.arr = topArr;
+    this.arr.push(otherTemp);
+  }
+}
+
+export class SortArr {
+  lable: string;
+  data: number;
+  index: number;
+
+  constructor(lable: string, data: number, index: number) {
+    this.lable = lable;
+    this.data = data;
+    this.index = index;
+  }
+}
+
+export class El {
+  lable: string;
+  data: number;
+  constructor(lable: string, data: number) {
+    this.lable = lable;
+    this.data = data;
   }
 }

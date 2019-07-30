@@ -2,15 +2,21 @@
     <canvas id='{{cardVal.id}}'>
     </canvas>
     <div>
-        <button (click)='onClick()'>
+        <button (click)='onFilter()'>
             bigger then
         </button>
-        <input [(ngModel)]='inputBig' (keyup.enter)='onEnter()'/>
+        <input [(ngModel)]='inputBig' (keyup.enter)='onFilter()'/>
     </div>
     <div>
-        <button (click)='onClick()'>
+        <button (click)='onFilter()'>
                 smaller then
         </button>
-        <input [(ngModel)]='inputSmall' (keyup.enter)='onEnter()'/>
+        <input [(ngModel)]='inputSmall' (keyup.enter)='onFilter()'/>
+    </div>
+    <div>
+        <button (click)='onTop()'>
+            top number
+        </button>
+    <input [(ngModel)]='topList' (keyup.enter)='onFilter()'/>
     </div>
 </div>
