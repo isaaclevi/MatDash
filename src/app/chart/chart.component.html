@@ -1,5 +1,5 @@
 <div>
-    <canvas id='{{cardVal.id}}'>
+    <canvas id='{{cardVal.id}}' (click)='onChartClick($event)'>
     </canvas>
     <div>
         <button (click)='onFilter()'>

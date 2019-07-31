@@ -1,10 +1,8 @@
-import { element } from 'protractor';
 import { Card } from './../CardClass';
 import { Component, Input, AfterViewInit, EventEmitter, Output, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import { HttpService } from './../http.service';
 import 'chartjs-plugin-labels';
-import { tmpdir } from 'os';
 
 @Component({
   selector: 'app-chart',
@@ -191,8 +189,12 @@ export class ChartComponent implements OnInit, AfterViewInit {
           });
           if (res != null) {
             res.data++;
-            // to do add all filterd users to others //////////////////////////////////
-            // this.others.push(user)
+            const othersEl = this.others.find((val) => {
+              return val.lable === this._users[i][this.dataType];
+            });
+            if (othersEl == null) {
+              this.others.push({lable: this._users[i][this.dataType], data: 1});
+            }
           }
           continue;
         }
@@ -201,9 +203,10 @@ export class ChartComponent implements OnInit, AfterViewInit {
       this.countUsersPerVer(i);
     }
     // get the top number
-    if (this.topListInput < this.lablesNumber) {
+    if (this._topListInput < this.lablesNumber && this._topListInput > 0) {
       this.topFilter();
     }
+    // console.log(this.others, this.arr);
   }
   ///// on Data from DB  //end//
 
@@ -260,19 +263,28 @@ export class ChartComponent implements OnInit, AfterViewInit {
       if (verI !== 0) {
         let verArrSmallStr = verArrSmall[verI];
         let userVerStr = userVer[verI];
-        if (verArrSmall[verI].length > userVer[verI].length) {
-          let str = '';
-          for (let i = 0; i < Math.abs(verArrSmall[verI].length - userVer[verI].length); i++) {
-            str += '0';
+        if (userVer[verI] != null && verArrSmall[verI] != null) {
+          if (verArrSmall[verI].length > userVer[verI].length) {
+            let str = '';
+            for (let i = 0; i < Math.abs(verArrSmall[verI].length - userVer[verI].length); i++) {
+              str += '0';
+            }
+            userVerStr += str;
           }
-          userVerStr += str;
-        }
-        if (verArrSmall[verI].length < userVer[verI].length) {
-          let str = '';
-          for (let i = 0; i < userVer[verI].length - verArrSmall[verI].length; i++ ) {
-            str += '0';
+          if (verArrSmall[verI].length < userVer[verI].length) {
+            let str = '';
+            for (let i = 0; i < userVer[verI].length - verArrSmall[verI].length; i++ ) {
+              str += '0';
+            }
+            verArrSmallStr += str;
           }
-          verArrSmallStr += str;
+        } else {
+          if (userVer[verI] == null) {
+            return false;
+          }
+          if (verArrSmall[verI] == null) {
+            return true;
+          }
         }
         if (Number(verArrSmallStr) < Number(userVerStr)) {
           return true;
@@ -280,12 +292,6 @@ export class ChartComponent implements OnInit, AfterViewInit {
         if (Number(verArrSmallStr) > Number(userVerStr)) {
           return false;
         }
-        //////////////////////////
-        // if ((Number(verArrSmall[verI])
-        //     * Math.pow(10, Math.abs(userVer[verI].length
-        //     - verArrSmall[verI].length))) < Number(userVer[verI])) {
-        //   return true;
-        // }
       }
     }
   }
@@ -461,6 +467,16 @@ export class ChartComponent implements OnInit, AfterViewInit {
     }
     this.arr = topArr;
     this.arr.push(otherTemp);
+  }
+
+  onChartClick(event) {
+    console.log(event);
+    var activePoints = this._chart.getElementsAtEvent(event);
+    console.log(activePoints);
+    // var firstPoint = activePoints[0];
+    // var label = this._chart.data.labels[this.arr[0].lable];
+    // var value = this._chart.data.datasets[this.arr[0].data].data[this.arr[0].lable];
+    // alert(label + ": " + value);
   }
 
   // getters and setters
