@@ -1,3 +1,4 @@
+import { element } from 'protractor';
 import { Card } from './../CardClass';
 import { Component, Input, AfterViewInit, EventEmitter, Output, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
@@ -24,7 +25,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
   // all db users
   private _users: any[];
   // Top number in the category
-  private _topList: number;
+  private _topListInput: number;
   // total number of lables
   private lablesNumber: number;
 
@@ -32,11 +33,13 @@ export class ChartComponent implements OnInit, AfterViewInit {
   private _chart: Chart;
   private chartDataInit: {dataArr: any[], lablesArr: string[]};
   private arr: El[];
+  private others: El[];
   private colorsArr: string[];
   private isChartChanged: boolean;
   @Output() viewChanged;
 
   constructor(private api: HttpService) {
+    this.others = [];
     this.inputBig = '0';
     this.isChartChanged = false;
     this.viewChanged = new EventEmitter();
@@ -87,7 +90,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.onData();
     this.chartDataInit = this.buildAndSortData();
-    this._topList = this.chartDataInit.lablesArr.length;
+    this._topListInput = this.chartDataInit.lablesArr.length;
     this.lablesNumber = this.chartDataInit.lablesArr.length;
     this.biggestVer = this.chartDataInit.lablesArr[this.chartDataInit.lablesArr.length - 2];
     this.inputSmall = this.biggestVer;
@@ -186,7 +189,11 @@ export class ChartComponent implements OnInit, AfterViewInit {
           const res = this.arr.find((el) => {
             return el.lable === 'other';
           });
-          res.data++;
+          if (res != null) {
+            res.data++;
+            // to do add all filterd users to others //////////////////////////////////
+            // this.others.push(user)
+          }
           continue;
         }
         //// end if to do
@@ -194,7 +201,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
       this.countUsersPerVer(i);
     }
     // get the top number
-    if (this.topList < this.lablesNumber) {
+    if (this.topListInput < this.lablesNumber) {
       this.topFilter();
     }
   }
@@ -255,7 +262,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
         let userVerStr = userVer[verI];
         if (verArrSmall[verI].length > userVer[verI].length) {
           let str = '';
-          for (let i = 0; i < verArrSmall[verI].length - userVer[verI].length; i++) {
+          for (let i = 0; i < Math.abs(verArrSmall[verI].length - userVer[verI].length); i++) {
             str += '0';
           }
           userVerStr += str;
@@ -327,7 +334,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
 
   onFilter() {
     // console.log(this.inputBig, this.inputSmall);
-    console.log(this._topList);
+    console.log(this._topListInput);
     this.onData();
     this.buildChart();
   }
@@ -342,14 +349,24 @@ export class ChartComponent implements OnInit, AfterViewInit {
 
   // filter the top number of users
   topFilter() {
+    let quantityPerVer: {quantity: number, vertions: string[]}[];
+    quantityPerVer = [];
     let min: number;
     let flag = false;
-    let topArr: SortArr[];
+    let topArr: El[];
     const otherTemp = {lable: 'other', data: 0};
     topArr = [];
     // sort an array to place the items
-    for (let Index = 0; Index < this._topList; Index++) {
-      topArr.push({lable: this.arr[Index].lable, data: this.arr[Index].data, index: Index});
+    for (let Index = 0; Index < this._topListInput; Index++) {
+      topArr.push({lable: this.arr[Index].lable, data: this.arr[Index].data});
+      const quEl = quantityPerVer.find((val) => {
+        return val.quantity === this.arr[Index].data;
+      });
+      if (quEl == null) {
+        quantityPerVer.push({quantity: this.arr[Index].data, vertions: [this.arr[Index].lable]});
+      } else {
+        quEl.vertions.push(this.arr[Index].lable);
+      }
       if (Index > 0) {
         for (let i = Index; i > 0; i--) {
           if (topArr[i].data < topArr[i - 1].data) {
@@ -363,7 +380,16 @@ export class ChartComponent implements OnInit, AfterViewInit {
     }
     min = topArr[0].data;
     // go through the all users array
-    for (let i = this._topList; i < this.arr.length ; i++) {
+    for (let i = this._topListInput; i < this.arr.length ; i++) {
+      // get the quantity of versions for eatch number of users
+      const quEl1 = quantityPerVer.find((val) => {
+        return val.quantity === this.arr[i].data;
+      });
+      if (quEl1 == null) {
+        quantityPerVer.push({quantity: this.arr[i].data, vertions: [this.arr[i].lable]});
+      } else {
+        quEl1.vertions.push(this.arr[i].lable);
+      }
       // check for eatch element in the sorted array against the users array
       for (let j = topArr.length - 1; j > -1; j--) {
         if (this.arr[i].data > topArr[j].data) {
@@ -371,7 +397,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
             break;
           } else {
             let tempTop = topArr[j];
-            topArr[j] = {lable: this.arr[i].lable, data: this.arr[i].data, index: i};
+            topArr[j] = {lable: this.arr[i].lable, data: this.arr[i].data};
             if (j > 0) {
               // sort the array again if an element is injected to the array
               for (let x = j - 1; x > -1; x--) {
@@ -382,20 +408,57 @@ export class ChartComponent implements OnInit, AfterViewInit {
                 }
               }
             }
+            // flag says when a group is allready in the 'other' lable
             flag = true;
+            this.others.push({lable: tempTop.lable, data: tempTop.data});
             otherTemp.data += tempTop.data;
             min = topArr[0].data;
             break;
           }
         }
       }
+      // all the groups that didn't have a bigger version then the array 'topArr'
       if (!flag) {
+        this.others.push(this.arr[i]);
         otherTemp.data += this.arr[i].data;
       } else {
         flag = false;
       }
     }
     console.log(topArr);
+    let tempArr = [];
+    const el = quantityPerVer.find((val) => {
+      return val.quantity === topArr[0].data;
+    });
+    if (Number(this._topListInput) === 1) {
+      if (el.vertions.length > 1) {
+        this.others.push(topArr[0]);
+        otherTemp.data += topArr[0].data;
+        tempArr = topArr;
+        topArr.pop();
+      }
+    } else {
+        if (el != null && el.vertions.length > 1 && topArr[0].data < topArr[1].data) {
+          this.others.push(topArr[0]);
+          otherTemp.data += topArr[0].data;
+          topArr.shift();
+        } else {
+            if (el != null && topArr[0].data === topArr[1].data) {
+              const num = topArr[0].data;
+              for (let i = 1; i < this._topListInput; i++) {
+                if (topArr[i].data > num && el.vertions.length > i) {
+                  for (let j = 0; j < i; j++) {
+                    this.others.push(topArr[j]);
+                    otherTemp.data += topArr[j].data;
+                  }
+                  tempArr = topArr;
+                  topArr.splice(0, i);
+                  break;
+                }
+              }
+            }
+        }
+    }
     this.arr = topArr;
     this.arr.push(otherTemp);
   }
@@ -431,28 +494,16 @@ export class ChartComponent implements OnInit, AfterViewInit {
       this.isChartChanged = false;
   }
 
-  get topList() {
-    return this._topList;
+  get topListInput() {
+    return this._topListInput;
   }
 
-  set topList(val: number) {
+  set topListInput(val: number) {
     if (val <= this.lablesNumber) {
-      this._topList = val;
+      this._topListInput = val;
     } else {
-      this._topList = this.lablesNumber;
+      this._topListInput = this.lablesNumber;
     }
-  }
-}
-
-export class SortArr {
-  lable: string;
-  data: number;
-  index: number;
-
-  constructor(lable: string, data: number, index: number) {
-    this.lable = lable;
-    this.data = data;
-    this.index = index;
   }
 }
 
