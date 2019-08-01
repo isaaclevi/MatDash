@@ -116,7 +116,7 @@ export class DashComponent implements OnInit, AfterViewInit {
     stringArr = Object.keys(val);
     stringArr.splice(0, 3);
     this.cardsTitles = stringArr;
-    console.log(this.cardsTitles);
+    // console.log(this.cardsTitles);
   }
   // change card title
   onTitleChange(newCardTitle, card) {
