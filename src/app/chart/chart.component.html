@@ -1,5 +1,5 @@
 <div>
-    <canvas id='{{cardVal.id}}' (click)='onChartClick($event)'>
+    <canvas id='{{cardVal.id}}' (click)='onChartClick($event)'> <!-- (click)='onChartClick($event)' -->
     </canvas>
     <div>
         <button (click)='onFilter()'>
@@ -18,5 +18,11 @@
             top number
         </button>
         <input [(ngModel)]='topListInput' (keyup.enter)='onFilter()'/>
+    </div>
+    <div>
+        <button (click)='onFilter()'>
+            buttom number
+        </button>
+        <input [(ngModel)]='botListInput' (keyup.enter)='onFilter()'/>
     </div>
 </div>

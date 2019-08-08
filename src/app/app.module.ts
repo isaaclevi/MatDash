@@ -1,4 +1,3 @@
-import { ChartsModule } from 'ng2-charts';
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, Injector } from '@angular/core';
@@ -55,8 +54,7 @@ const appRoutes: Routes = [
     MatToolbarModule,
     MatSidenavModule,
     MatListModule,
-    MatNativeDateModule,
-    ChartsModule
+    MatNativeDateModule
   ],
   providers: [],
   bootstrap: [AppComponent],

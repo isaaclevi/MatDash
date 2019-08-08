@@ -19,15 +19,23 @@ export class ChartComponent implements OnInit, AfterViewInit {
   // element to filter from (all bigger then filterd)
   public inputSmall: string;
   // card info
+  // tslint:disable-next-line: variable-name
   private _cardVal;
   // all db users
+  // tslint:disable-next-line: variable-name
   private _users: any[];
   // Top number in the category
+  // tslint:disable-next-line: variable-name
   private _topListInput: number;
+  // Buttom number in the category
+  // tslint:disable-next-line: variable-name
+  private _botListInput: number;
   // total number of lables
   private lablesNumber: number;
 
+  // tslint:disable-next-line: variable-name
   private _canv;
+  // tslint:disable-next-line: variable-name
   private _chart: Chart;
   private chartDataInit: {dataArr: any[], lablesArr: string[]};
   private arr: El[];
@@ -36,6 +44,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
   private others: El[];
   private colorsArr: string[];
   private isChartChanged: boolean;
+  private quantityPerVer: {quantity: number, versions: string[]}[];
   @Output() viewChanged;
 
   constructor(private api: HttpService) {
@@ -92,6 +101,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
     this.onData();
     this.chartDataInit = this.buildAndSortData();
     this._topListInput = this.chartDataInit.lablesArr.length;
+    this._botListInput = this.chartDataInit.lablesArr.length;
     this.lablesNumber = this.chartDataInit.lablesArr.length;
     this.biggestVer = this.chartDataInit.lablesArr[this.chartDataInit.lablesArr.length - 2];
     this.inputSmall = this.biggestVer;
@@ -155,6 +165,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
   async onData() {
     let otherLableF = false;
     this.otherLable = {lable: 'other', data: 0};
+    this.quantityPerVer = [];
     if (this.others != null) {
       this.others = [];
     }
@@ -170,8 +181,6 @@ export class ChartComponent implements OnInit, AfterViewInit {
     let userVer = null;
     if (this.inputBig !== '0' || this.inputSmall !== this.biggestVer) {
       otherLableF = true;
-      //////////////////////////////////// change 1
-      // this.arr.push({lable: 'other', data: 0});
     }
     for (let i = 0; i < this._users.length; i++) {
       // checking the user version number is not null
@@ -191,13 +200,8 @@ export class ChartComponent implements OnInit, AfterViewInit {
         }
         if (flage) {
           flage = !flage;
-          /////////////////////////////// change 2
-          // const res = this.arr.find((el) => {
-          //   return el.lable === 'other';
-          // });
-          if (/*res != null*/ otherLableF) {
+          if (otherLableF) {
             this.otherLable.data++;
-            //res.data++;
             const othersEl = this.others.find((val) => {
               return val.lable === this._users[i][this.dataType];
             });
@@ -214,10 +218,15 @@ export class ChartComponent implements OnInit, AfterViewInit {
       // conuting how many users on each version
       this.countUsersPerVer(i);
     }
-    // get the top number
+    // get the top number of type data
     if (this._topListInput < this.lablesNumber && this._topListInput > 0) {
       otherLableF = true;
       this.topFilter();
+    }
+    // get the buttom number of type data
+    if (this._botListInput < this.lablesNumber && this._botListInput > 0) {
+      otherLableF = true;
+      this.buttomFilter();
     }
     if (otherLableF) {
       this.arr.push({lable: this.otherLable.lable, data: this.otherLable.data});
@@ -233,7 +242,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
           return true;
         }
       }
-      // checking for vertion number after the first '.'
+      // checking for version number after the first '.'
       if (verI !== 0) {
         let verArrBigStr = verArrBig[verI];
         let userVerStr = userVer[verI];
@@ -268,7 +277,7 @@ export class ChartComponent implements OnInit, AfterViewInit {
           return true;
         }
       }
-      // checking for vertion number after the first '.'
+      // checking for version number after the first '.'
       if (verI !== 0) {
         let verArrSmallStr = verArrSmall[verI];
         let userVerStr = userVer[verI];
@@ -321,7 +330,6 @@ export class ChartComponent implements OnInit, AfterViewInit {
     }
   }
 
-
   buildChart() {
     const res = this.buildAndSortData();
     this._chart.data.labels = res.lablesArr;
@@ -348,15 +356,14 @@ export class ChartComponent implements OnInit, AfterViewInit {
   }
 
   onFilter() {
-    // console.log(this.inputBig, this.inputSmall);
-    console.log(this._topListInput);
+    console.log(this._topListInput, this._botListInput);
     this.onData();
     this.buildChart();
   }
   // sort array of data by lable
   sortArrByLable(sortingArr: string[], objToSort: object) {
     const arr = [];
-    for (let i=0; i < sortingArr.length; i++) {
+    for (let i = 0; i < sortingArr.length; i++) {
       arr.push(objToSort[sortingArr[i]]);
     }
     return arr;
@@ -364,28 +371,32 @@ export class ChartComponent implements OnInit, AfterViewInit {
 
   // filter the top number of users
   topFilter() {
-    let quantityPerVer: {quantity: number, vertions: string[]}[];
-    quantityPerVer = [];
+    this.quantityPerVer = [];
     let topArr: El[];
     topArr = [];
     // sort an array to place the items
-    this.sortTopFilterArr(topArr, quantityPerVer);
+    this.sortTopFilterArr(topArr);
     // go through the all users array and sort the filterd array
-    this.sortTopNum(topArr, quantityPerVer);
+    this.sortTopNum(topArr);
     console.log(topArr);
     let tempArr = [];
-    const el = quantityPerVer.find((val) => {
+    const el = this.quantityPerVer.find((val) => {
       return val.quantity === topArr[0].data;
     });
+    console.log(this.quantityPerVer.sort()[0]);
     if (Number(this._topListInput) === 1) {
-      if (el.vertions.length > 1) {
+      if (el.versions.length > 1) {
         this.others.push(topArr[0]);
         this.otherLable.data += topArr[0].data;
         tempArr = topArr;
         topArr.pop();
       }
     } else {
-        if (el != null && el.vertions.length > 1 && topArr[0].data < topArr[1].data) {
+        let elOthers;
+        elOthers = this.others.find((val) => {
+          return val.data === topArr[0].data;
+        });
+        if (el != null && el.versions.length > 1 && topArr[0].data < topArr[1].data /*|| elOthers != null*/) {
           this.others.push(topArr[0]);
           this.otherLable.data += topArr[0].data;
           topArr.shift();
@@ -393,9 +404,8 @@ export class ChartComponent implements OnInit, AfterViewInit {
             if (el != null && topArr[0].data === topArr[1].data) {
               const num = topArr[0].data;
               for (let i = 1; i < this._topListInput; i++) {
-                if (topArr[i].data > num && el.vertions.length > i) {
+                if (topArr[i].data > num && el.versions.length > i) {
                   for (let j = 0; j < i; j++) {
-                    ///////////////////////////////// need to fix
                     console.log(topArr[j]);
                     this.others.push(topArr[j]);
                     this.otherLable.data += topArr[j].data;
@@ -410,17 +420,17 @@ export class ChartComponent implements OnInit, AfterViewInit {
     }
     this.arr = topArr;
   }
-
-  sortTopFilterArr(topArr, quantityPerVer) {
+  // sort top array before sorting the hole data
+  sortTopFilterArr(topArr) {
     for (let Index = 0; Index < this._topListInput; Index++) {
       topArr.push({lable: this.arr[Index].lable, data: this.arr[Index].data});
-      const quEl = quantityPerVer.find((val) => {
+      const quEl = this.quantityPerVer.find((val) => {
         return val.quantity === this.arr[Index].data;
       });
       if (quEl == null) {
-        quantityPerVer.push({quantity: this.arr[Index].data, vertions: [this.arr[Index].lable]});
+        this.quantityPerVer.push({quantity: this.arr[Index].data, versions: [this.arr[Index].lable]});
       } else {
-        quEl.vertions.push(this.arr[Index].lable);
+        quEl.versions.push(this.arr[Index].lable);
       }
       if (Index > 0) {
         for (let i = Index; i > 0; i--) {
@@ -435,19 +445,19 @@ export class ChartComponent implements OnInit, AfterViewInit {
     }
   }
 
-  sortTopNum(topArr, quantityPerVer) {
+  sortTopNum(topArr) {
     let flag = false;
     let min: number;
     min = topArr[0].data;
     for (let i = this._topListInput; i < this.arr.length ; i++) {
       // get the quantity of versions for eatch number of users
-      const quEl1 = quantityPerVer.find((val) => {
+      const quEl1 = this.quantityPerVer.find((val) => {
         return val.quantity === this.arr[i].data;
       });
       if (quEl1 == null) {
-        quantityPerVer.push({quantity: this.arr[i].data, vertions: [this.arr[i].lable]});
+        this.quantityPerVer.push({quantity: this.arr[i].data, versions: [this.arr[i].lable]});
       } else {
-        quEl1.vertions.push(this.arr[i].lable);
+        quEl1.versions.push(this.arr[i].lable);
       }
       // check for eatch element in the sorted array against the users array
       for (let j = topArr.length - 1; j > -1; j--) {
@@ -488,67 +498,165 @@ export class ChartComponent implements OnInit, AfterViewInit {
 
   // filter the buttom number of users
   buttomFilter() {
-    let quantityPerVer: {quantity: number, vertions: string[]}[];
-    quantityPerVer = [];
-    let topArr: El[];
-    topArr = [];
+    this.quantityPerVer = [];
+    let botArr: El[];
+    botArr = [];
     // sort an array to place the items
-    this.sortTopFilterArr(topArr, quantityPerVer);
+    this.sortBotFilterArr(botArr);
+    console.log(botArr);
     // go through the all users array and sort the filterd array
-    this.sortTopNum(topArr, quantityPerVer);
-    console.log(topArr);
+    this.sortBotNum(botArr);
+    console.log(botArr);
     let tempArr = [];
-    const el = quantityPerVer.find((val) => {
-      return val.quantity === topArr[0].data;
+    const el = this.quantityPerVer.find((val) => {
+      return val.quantity === botArr[0].data;
     });
-    if (Number(this._topListInput) === 1) {
-      if (el.vertions.length > 1) {
-        this.others.push(topArr[0]);
-        this.otherLable.data += topArr[0].data;
-        tempArr = topArr;
-        topArr.pop();
+    if (Number(this._botListInput) === 1) {
+      if (el.versions.length > 1) {
+        this.others.push(botArr[0]);
+        this.otherLable.data += botArr[0].data;
+        tempArr = botArr;
+        botArr.pop();
       }
     } else {
-        if (el != null && el.vertions.length > 1 && topArr[0].data < topArr[1].data) {
-          this.others.push(topArr[0]);
-          this.otherLable.data += topArr[0].data;
-          topArr.shift();
+        console.log(el);
+        // if the item is in others but there is sill one item in with the same amout of users in botArr
+
+        // let elOthers;
+        // let tempQuantityPerVer = this.quantityPerVer;
+        // let totalVerPerQuantity = 0;
+        // if (el.versions.length > 1) {
+        //   elOthers = this.others.find((val) => {
+        //       return val.data === botArr[0].data;
+        //   });
+        //   for (let iArr = 1; iArr < botArr.length; iArr++) {
+        //     for (let index = 0; index < tempQuantityPerVer.length; index++) {
+        //       if (botArr[iArr].data === tempQuantityPerVer[index].quantity) {
+        //         totalVerPerQuantity += tempQuantityPerVer[index].versions.length;
+        //         tempQuantityPerVer.splice(index, 1);
+        //         break;
+        //       }
+        //     }
+        //     if (tempQuantityPerVer === [] || totalVerPerQuantity > Number(this._botListInput)) {
+        //       break;
+        //     }
+        //   }
+        // }
+        if (el != null && el.versions.length > 1 && botArr[0].data > botArr[1].data
+          /*|| (elOthers != null && Number(this._botListInput) < totalVerPerQuantity + el.versions.length)*/) {
+          this.others.push(botArr[0]);
+          this.otherLable.data += botArr[0].data;
+          botArr.shift();
         } else {
-            if (el != null && topArr[0].data === topArr[1].data) {
-              const num = topArr[0].data;
-              for (let i = 1; i < this._topListInput; i++) {
-                if (topArr[i].data > num && el.vertions.length > i) {
+            if (el != null && botArr[0].data === botArr[1].data) {
+              const num = botArr[0].data;
+              for (let i = 1; i < this._botListInput; i++) {
+                if (botArr[i].data > num && el.versions.length > i) {
                   for (let j = 0; j < i; j++) {
-                    ///////////////////////////////// need to fix
-                    console.log(topArr[j]);
-                    this.others.push(topArr[j]);
-                    this.otherLable.data += topArr[j].data;
+                    console.log(botArr[j]);
+                    this.others.push(botArr[j]);
+                    this.otherLable.data += botArr[j].data;
                   }
-                  tempArr = topArr;
-                  topArr.splice(0, i);
+                  tempArr = botArr;
+                  botArr.splice(0, i);
                   break;
                 }
               }
             }
         }
     }
-    this.arr = topArr;
+    this.arr = botArr;
+  }
+
+  // sort buttom array before sorting the hole data
+  sortBotFilterArr(BotArr) {
+    for (let Index = 0; Index < this._botListInput; Index++) {
+      BotArr.push({lable: this.arr[Index].lable, data: this.arr[Index].data});
+      const quEl = this.quantityPerVer.find((val) => {
+        return val.quantity === this.arr[Index].data;
+      });
+      if (quEl == null) {
+        this.quantityPerVer.push({quantity: this.arr[Index].data, versions: [this.arr[Index].lable]});
+      } else {
+        quEl.versions.push(this.arr[Index].lable);
+      }
+      if (Index > 0) {
+        for (let i = Index; i > 0; i--) {
+          if (BotArr[i].data > BotArr[i - 1].data) {
+            const temp1 = BotArr[i];
+            const temp2 = BotArr[i - 1];
+            BotArr[i] = temp2;
+            BotArr[i - 1] = temp1;
+          }
+        }
+      }
+    }
+  }
+
+  sortBotNum(botArr) {
+    let flag = false;
+    let max: number;
+    max = botArr[0].data;
+    for (let i = this._botListInput; i < this.arr.length ; i++) {
+      // get the quantity of versions for eatch number of users
+      const quEl1 = this.quantityPerVer.find((val) => {
+        return val.quantity === this.arr[i].data;
+      });
+      if (quEl1 == null) {
+        this.quantityPerVer.push({quantity: this.arr[i].data, versions: [this.arr[i].lable]});
+      } else {
+        quEl1.versions.push(this.arr[i].lable);
+      }
+      // check for eatch element in the sorted array against the users array
+      for (let j = botArr.length - 1; j > -1; j--) {
+        if (this.arr[i].data < botArr[j].data) {
+          if (this.arr[i].lable === 'other') {
+            break;
+          } else {
+            let tempBot = botArr[j];
+            botArr[j] = {lable: this.arr[i].lable, data: this.arr[i].data};
+            if (j > 0) {
+              // sort the array again if an element is injected to the array
+              for (let x = j - 1; x > -1; x--) {
+                if (tempBot.data < botArr[x].data) {
+                  const tmp2 = botArr[x];
+                  botArr[x] = tempBot;
+                  tempBot = tmp2;
+                }
+              }
+            }
+            // flag says when a group is allready in the 'other' lable
+            flag = true;
+            this.others.push({lable: tempBot.lable, data: tempBot.data});
+            max = botArr[0].data;
+            this.otherLable.data += tempBot.data;
+            break;
+          }
+        }
+      }
+      // all the groups that didn't have a samller version then the array 'botArr'
+      if (!flag) {
+        this.others.push(this.arr[i]);
+        this.otherLable.data += this.arr[i].data;
+      } else {
+        flag = false;
+      }
+    }
   }
 
   onChartClick(event) {
+    let label;
     console.log(event);
-    const activePoints = this._chart.getElementsAtEvent(event)[0]._index;
-    console.log(activePoints);
-    // const clickedVar = activePoints[0];
-    // const varIndex = clickedVar._index;
-    // console.log(varIndex);
-    const label = this._chart.data.labels[activePoints];
+    const varIndex = this._chart.getElementsAtEvent(event);
+    console.log(varIndex[0]._index);
+    const index = varIndex[0]._index;
+    if (index != null) {
+      label = this._chart.data.labels[index];
+    }
     console.log(label);
     if (label === 'other') {
       this.loadOther();
     }
-    // var value = this._chart.data.datasets[this.arr[0].data].data[this.arr[0].lable];
-    // alert(label + ": " + value);
   }
 
   loadOther() {
@@ -596,6 +704,18 @@ export class ChartComponent implements OnInit, AfterViewInit {
       this._topListInput = val;
     } else {
       this._topListInput = this.lablesNumber;
+    }
+  }
+
+  get botListInput() {
+    return this._botListInput;
+  }
+
+  set botListInput(val: number) {
+    if (val <= this.lablesNumber) {
+      this._botListInput = val;
+    } else {
+      this._botListInput = this.lablesNumber;
     }
   }
 }
