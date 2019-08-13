@@ -21,6 +21,8 @@ import { InitChartComponent } from './init-chart/init-chart.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ChartComponent } from './chart/chart.component';
 import { FormsModule } from '@angular/forms';
+import { ChartsModule } from 'ng2-charts';
+import { MyPieChartComponent } from './my-pie-chart/my-pie-chart.component';
 
 const appRoutes: Routes = [
   {path: '1', component: DashComponent},
@@ -34,10 +36,12 @@ const appRoutes: Routes = [
     NavBarComponent,
     DashComponent,
     InitChartComponent,
-    ChartComponent
+    ChartComponent,
+    MyPieChartComponent
   ],
 
   imports: [
+    ChartsModule,
     HttpClientModule,
     BrowserModule,
     FormsModule,

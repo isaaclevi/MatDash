@@ -1,5 +1,14 @@
 <div>
-    <canvas id='{{cardVal.id}}' (click)='onChartClick($event)'> <!-- (click)='onChartClick($event)' -->
+    <canvas id='{{cardVal.id}}' 
+        baseChart
+        [data]="pieChartData"
+        [labels]="pieChartLabels"
+        [chartType]="pieChartType"
+        [options]="pieChartOptions"
+        [plugins]="pieChartPlugins"
+        [colors]="pieChartColors"
+        [legend]="pieChartLegend"
+        (chartClick)="onChartClick($event)"> <!-- (click)='onChartClick($event)' -->
     </canvas>
     <div>
         <button (click)='onFilter()'>
