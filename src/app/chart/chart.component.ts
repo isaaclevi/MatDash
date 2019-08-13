@@ -107,14 +107,14 @@ export class ChartComponent implements OnInit, AfterViewInit {
     this.lablesNumber = this.chartDataInit.lablesArr.length;
     this.biggestVer = this.chartDataInit.lablesArr[this.chartDataInit.lablesArr.length - 2];
     this.inputSmall = this.biggestVer;
-  }
-
-  ngAfterViewInit() {
-    this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
     if (!this.isChartChanged) {
       this.pieChartLabels = this.chartDataInit.lablesArr;
       this.pieChartData = this.chartDataInit.dataArr;
     }
+  }
+
+  ngAfterViewInit() {
+    // this._canv = (document.getElementById(this._cardVal.id) as HTMLCanvasElement).getContext('2d');
     this.viewChanged.emit(this._cardVal);
   }
 
